@@ -3,6 +3,7 @@ package config;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import utils.ExcelUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,6 +14,7 @@ public class ExcelConfig {
     private Workbook workbook;
     private String filePath;
 
+    String excelFile = ExcelUtils.readExeclPath() + "Demo.xlsx";
 
     public ExcelConfig(String filePath) {
         this.filePath = filePath;

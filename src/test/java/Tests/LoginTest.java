@@ -31,7 +31,7 @@ public class LoginTest extends BaseTest {
 
             LoginPage loginPage = new LoginPage(page);
         try {
-            loginPage.navigateTo(ConfigReader.getProperty("orangeHRM.url"));
+            loginPage.navigateTo(ConfigReader.getProperty("demo.url"));
 
             ReportTestLogger.info(testnode, "Navigated to login page");
 

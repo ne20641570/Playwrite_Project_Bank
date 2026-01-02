@@ -6,8 +6,10 @@ import com.microsoft.playwright.Page;
 import config.ConfigReader;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
+import utils.ExcelUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import static utils.FileUtils.createFolderIfNotExists;
@@ -27,20 +29,20 @@ public class BaseTest {
     }
     @Parameters({"browser"})
     @BeforeMethod(alwaysRun = true)
-    public void setUp(@Optional("chrome") String browser, Method method) {
+    public void setUp(@Optional("chrome") String browser, Method method) throws IOException {
 
         boolean headless = Boolean.parseBoolean(ConfigReader.getProperty("headless"));
-
-
+        String filePath =ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.demo");
+        ExcelUtils.openExcel(filePath);
         PlaywrightFactory.initBrowser(browser, headless);
         page = PlaywrightFactory.getPage();
-
 
     }
 
     @AfterMethod(alwaysRun = true)
-    public void tearDown(ITestResult result) {
+    public void tearDown(ITestResult result) throws IOException {
         page.close();
+        ExcelUtils.closeExcel();   // Close Excel
         PlaywrightFactory.closeBrowser();
     }
 

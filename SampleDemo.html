@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login & Registration</title>
+    <style>
+        body {
+          font-family: Arial;
+          background: #f4f6f8;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+        .box {
+          background: white;
+          padding: 25px;
+          width: 360px;
+          border-radius: 8px;
+          text-align: center;
+          box-shadow: 0 0 10px rgba(0,0,0,.1);
+        }
+        input, button {
+          width: 100%;
+          padding: 10px;
+          margin: 8px 0;
+        }
+        button {
+          background: #007bff;
+          color: white;
+          border: none;
+          cursor: pointer;
+        }
+        .secondary {
+          background: #28a745;
+        }
+        a {
+          color: #007bff;
+          cursor: pointer;
+          text-decoration: none;
+          font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box" id="loginBox">
+    <h2>Login</h2>
+    <input id="loginUser" placeholder="Username">
+    <input id="loginPass" type="password" placeholder="Password">
+    <button onclick="login()">Login</button>
+    <p><a onclick="showRegister()">New user? Register</a></p>
+</div>
+
+<div class="box" id="registerBox" style="display:none;">
+    <h2>Register</h2>
+
+    <input id="regUser" placeholder="Generated Username" readonly>
+
+    <button class="secondary" onclick="generateUsername()">Generate Username</button>
+    <button onclick="register()">Register</button>
+
+    <p>Password: <b>Demo@1234</b></p>
+    <p><a onclick="showLogin()">Back to Login</a></p>
+</div>
+
+<script>
+    const PASSWORD = "Demo@1234";
+    const DOMAIN = "@random.com";
+
+    function randomString(len) {
+      return [...crypto.getRandomValues(new Uint8Array(len))]
+        .map(x => (x % 36).toString(36))
+        .join('');
+    }
+
+    function generateUsername() {
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      let username;
+
+      do {
+        // local part length: 7–10 characters
+        const len = Math.floor(Math.random() * 4) + 7;
+        username = randomString(len) + DOMAIN;
+      } while (users[username]);
+
+      document.getElementById("regUser").value = username;
+    }
+
+    function register() {
+      const username = document.getElementById("regUser").value;
+      if (!username) {
+        alert("Please generate a username first");
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+      users[username] = PASSWORD;
+      localStorage.setItem("users", JSON.stringify(users));
+
+      alert("Registration successful!\nUsername: " + username);
+      showLogin();
+    }
+
+    function login() {
+      const u = document.getElementById("loginUser").value;
+      const p = document.getElementById("loginPass").value;
+      const users = JSON.parse(localStorage.getItem("users")) || {};
+
+      if (users[u] && users[u] === p) {
+        document.body.innerHTML = `
+          <div class="box">
+            <h2>Login Successful ✅</h2>
+            <p>Welcome <b>${u}</b></p>
+            <p>📧 Welcome to our platform! We’re glad to have you.</p>
+          </div>
+        `;
+      } else {
+        alert("Invalid username or password");
+      }
+    }
+
+    function showRegister() {
+      document.getElementById("loginBox").style.display = "none";
+      document.getElementById("registerBox").style.display = "block";
+    }
+
+    function showLogin() {
+      document.getElementById("registerBox").style.display = "none";
+      document.getElementById("loginBox").style.display = "block";
+    }
+</script>
+
+</body>
+</html>
