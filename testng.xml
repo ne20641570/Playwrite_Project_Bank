@@ -4,25 +4,25 @@
     <test name="Chromium_Test">
         <parameter name="browser" value="CHROMIUM"/>
         <classes>
-            <class name="Tests.GoogleTest"/>
+            <class name="Tests.RegistrationTest"/>
         </classes>
     </test>
     <test name="Firefox_Test">
         <parameter name="browser" value="FIREFOX"/>
         <classes>
-            <class name="Tests.LoginTest"/>
+            <class name="Tests.RegistrationTest"/>
         </classes>
     </test>
 <!--    <test name="Mobile_Test">-->
 <!--        <parameter name="mobile" value="MOBILE"/>-->
 <!--        <classes>-->
-<!--            <class name="Tests.LoginTest"/>-->
+<!--            <class name="Tests.RegistrationTest"/>-->
 <!--        </classes>-->
 <!--    </test>-->
     <test name="Webkit_Test">
         <parameter name="browser" value="WEBKIT"/>
         <classes>
-            <class name="Tests.LoginTest"/>
+            <class name="Tests.RegistrationTest"/>
         </classes>
     </test>
 

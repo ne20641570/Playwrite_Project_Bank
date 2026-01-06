@@ -11,6 +11,11 @@ public class ExcelSheetValiation {
 
     String excelFile = ExcelUtils.readExeclPath() + "Demo.xlsx";
 
+    @Test
+    public void clearData() throws IOException{
+        String filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+        ExcelUtils.deleteAllData(filePath);
+    }
 
     @Test
     public void excelVerify() throws IOException {
@@ -23,8 +28,8 @@ public class ExcelSheetValiation {
             int rowNum = i + 1; // because header is row 0
             System.out.println("rowNo: "+rowNum);
             // Read username and password from the same row
-            String username = ExcelUtils.getCellData("Credentials", "username", rowNum);
-            String password = ExcelUtils.getCellData("Credentials", "password", rowNum);
+            String username = ExcelUtils.getCellData("Credentials", "username");
+            String password = ExcelUtils.getCellData("Credentials", "password");
 
             System.out.println("Testcase: " + tcs.get(i) + " | Username: " + username + " | Password: " + password);
 

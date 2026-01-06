@@ -5,9 +5,10 @@ import com.aventstack.extentreports.ExtentTest;
 
 public class ReportManager {
     private static ThreadLocal<ExtentTest> testThread = new ThreadLocal<>();
-    private static ExtentReports extent = ReportConfigre.getExtentReports();
+    private static ExtentReports extent; ;
 
-    public static synchronized void startTest(String testName) {
+    public static synchronized void startTest(String testName,String reportIs) {
+        extent=ReportConfigre.getExtentReports(reportIs);
         ExtentTest test = extent.createTest(testName);
         testThread.set(test);
     }

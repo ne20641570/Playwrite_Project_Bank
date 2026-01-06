@@ -13,10 +13,10 @@ public class ReportConfigre {
 
     private static ExtentReports extent;
 
-    public synchronized static ExtentReports getExtentReports() {
+    public synchronized static ExtentReports getExtentReports(String reportIs) {
         if (extent == null) {
             String baseIs = System.getProperty("user.dir")+File.separator+ConfigReader.getProperty("report.path")+File.separator;
-            ExtentSparkReporter spark = new ExtentSparkReporter( createFolderIfNotExists(baseIs)+File.separator+"ExtentReport.html");
+            ExtentSparkReporter spark = new ExtentSparkReporter( createFolderIfNotExists(baseIs)+File.separator+reportIs+"_ExtentReport.html");
             spark.config().setReportName("PlayWright Demo Report");
             spark.config().setDocumentTitle("Demo Playwright Automation");
 

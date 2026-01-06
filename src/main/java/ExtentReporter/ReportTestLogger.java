@@ -1,9 +1,7 @@
 package ExtentReporter;
 
 import com.aventstack.extentreports.ExtentTest;
-import com.aventstack.extentreports.MediaEntityBuilder;
 import com.microsoft.playwright.Page;
-import utils.AttachmentUtils;
 
 public class ReportTestLogger {
     protected static Page page;
@@ -17,8 +15,8 @@ public class ReportTestLogger {
     public static void fail(ExtentTest extentTest,String message) {
         extentTest.fail(message);
     }
-    public static void createNode(ExtentTest extentTest, String message){
-        extentTest.createNode(message);
+    public static ExtentTest createinnerNode(ExtentTest extentTest, String message){
+       return extentTest.createNode(message);
     }
 
     public static void info(ExtentTest extentTest,String message) {

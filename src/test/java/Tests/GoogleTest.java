@@ -14,7 +14,7 @@ import java.io.IOException;
 public class GoogleTest extends BaseTest {
     @BeforeClass
     public void setupBeforeClass() {
-        ReportManager.startTest("Google TS_01 Google Home Page Valiation");
+        ReportManager.startTest("Google TS_01 Google Home Page Valiation","GoogleTest");
     }
 
     @Test()

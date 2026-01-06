@@ -6,6 +6,7 @@ import utils.BrowserUtils;
 import utils.WaitUtils;
 
 import java.io.IOException;
+import java.util.List;
 
 public class BasePage {
     protected Page page;
@@ -28,6 +29,10 @@ public class BasePage {
         WaitUtils.waitForElement(page, selector, 30);
         return BrowserUtils.getText(page, selector);
     }
+    public List<String> getMultipleElementText(String selector) {
+        WaitUtils.waitForElement(page, selector, 30);
+        return BrowserUtils.multipleText(page, selector);
+    }
 
     public void navigateTo(String url) {
         BrowserUtils.navigate(page, url);
@@ -44,4 +49,9 @@ public class BasePage {
         WaitUtils.waitForElement(page, selector, 30);
         page.locator(selector).selectOption(text);
     }
+    public void verifyElement(String selector) {
+        WaitUtils.waitForElement(page, selector, 30);
+        BrowserUtils.isDisplayed(page, selector);
+    }
+
 }
