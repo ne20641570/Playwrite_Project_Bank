@@ -25,7 +25,7 @@ src/main/java
 ├── base
 ├── config
 ├── pages
-├── ExtentReporter
+├── extentReporter
 ├── utils
 src/test/java
 ├── tests
@@ -59,7 +59,7 @@ src/test/java
 
 ---
 
-## ▶️ Run Tests
+## ▶️ Run tests
 
 ### Run all tests with TestNG with parallel testing:
 mvn clean test

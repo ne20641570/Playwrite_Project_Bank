@@ -1,10 +1,9 @@
-package Listeners;
+package listeners;
 
 import com.aventstack.extentreports.ExtentTest;
 import com.microsoft.playwright.TimeoutError;
 import config.ConfigReader;
 import org.testng.IRetryAnalyzer;
-import org.testng.ITestListener;
 import org.testng.ITestResult;
 
 public class RetryAnalyzer implements IRetryAnalyzer {

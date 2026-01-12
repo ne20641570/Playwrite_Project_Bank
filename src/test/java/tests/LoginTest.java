@@ -1,21 +1,19 @@
-package Tests;
+package tests;
 
-import ExtentReporter.ReportManager;
-import ExtentReporter.ReportTestLogger;
-import Listeners.RetryAnalyzer;
-import Listeners.Scenario;
-import Pages.LoginPage;
+import extentReporter.ReportManager;
+import extentReporter.ReportTestLogger;
+import listeners.RetryAnalyzer;
+import listeners.Scenario;
+import pages.LoginPage;
 import com.aventstack.extentreports.ExtentTest;
 import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
-import org.testng.ITestResult;
 import org.testng.annotations.*;
 import utils.ExcelUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
-import java.util.Arrays;
 
 @Scenario("TS_02 Login Page Functionality Validation")
 public class LoginTest extends BaseTest {

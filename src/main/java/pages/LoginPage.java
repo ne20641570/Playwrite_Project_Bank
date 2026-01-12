@@ -1,12 +1,9 @@
-package Pages;
+package pages;
 
 import base.BasePage;
 import com.aventstack.extentreports.ExtentTest;
 import com.microsoft.playwright.Page;
-import com.microsoft.playwright.options.LoadState;
-import config.ConfigReader;
 
-import java.util.Collections;
 import java.util.List;
 
 public class LoginPage extends BasePage {

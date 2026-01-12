@@ -1,4 +1,4 @@
-package Pages;
+package pages;
 
 import base.BasePage;
 import com.microsoft.playwright.Page;

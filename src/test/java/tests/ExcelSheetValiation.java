@@ -1,4 +1,4 @@
-package Tests;
+package tests;
 
 import config.ConfigReader;
 import org.testng.annotations.Test;

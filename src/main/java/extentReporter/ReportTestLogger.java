@@ -1,9 +1,7 @@
-package ExtentReporter;
+package extentReporter;
 
 import com.aventstack.extentreports.ExtentTest;
 import com.microsoft.playwright.Page;
-
-import java.io.IOException;
 
 public class ReportTestLogger {
     protected static Page page;

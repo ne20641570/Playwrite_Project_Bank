@@ -1,16 +1,13 @@
-package Tests;
+package tests;
 
-import ExtentReporter.ReportConfigre;
-import ExtentReporter.ReportManager;
-import com.aventstack.extentreports.ExtentTest;
+import extentReporter.ReportManager;
 import com.microsoft.playwright.*;
-import com.microsoft.playwright.options.LoadState;
 import config.ConfigReader;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
 import utils.ExcelUtils;
-import Listeners.Scenario;
+
 import java.io.File;
 import java.lang.reflect.Method;
 import java.nio.file.Files;

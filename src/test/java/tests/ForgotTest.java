@@ -1,25 +1,23 @@
-package Tests;
+package tests;
 
-import ExtentReporter.ReportManager;
-import ExtentReporter.ReportTestLogger;
-import Listeners.RetryAnalyzer;
-import Pages.ForgotPage;
-import Pages.InputField;
-import Pages.RegistrationFormData;
+import extentReporter.ReportManager;
+import extentReporter.ReportTestLogger;
+import listeners.RetryAnalyzer;
+import pages.ForgotPage;
+import pages.InputField;
 import com.aventstack.extentreports.ExtentTest;
 import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
 import utils.ExcelUtils;
-import Listeners.Scenario;
+import listeners.Scenario;
 import utils.TestDataGenerator;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Random;
 
 @Scenario("TS_03 Forgot Page Functionality Validation")

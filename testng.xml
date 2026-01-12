@@ -4,18 +4,17 @@
     <test name="Chromium_Test">
         <parameter name="browser" value="chromium"/>
         <classes>
-            <class name="Tests.RegistrationTest"/>
-            <class name="Tests.LoginTest"/>
-            <class name="Tests.ForgotTest"/>
+            <class name="tests.RegistrationTest"/>
+            <class name="tests.LoginTest"/>
+            <class name="tests.ForgotTest"/>
         </classes>
     </test>
-
     <test name="Webkit_Test">
         <parameter name="browser" value="webkit"/>
         <classes>
-            <class name="Tests.RegistrationTest"/>
-            <class name="Tests.LoginTest"/>
-            <class name="Tests.ForgotTest"/>
+            <class name="tests.RegistrationTest"/>
+            <class name="tests.LoginTest"/>
+            <class name="tests.ForgotTest"/>
         </classes>
     </test>
 

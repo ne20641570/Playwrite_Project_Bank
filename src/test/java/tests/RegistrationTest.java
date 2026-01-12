@@ -1,18 +1,18 @@
-package Tests;
+package tests;
 
-import ExtentReporter.ReportManager;
-import ExtentReporter.ReportTestLogger;
-import Listeners.RetryAnalyzer;
-import Pages.RegisterPage;
-import Pages.RegistrationFormData;
-import Pages.InputField;
+import extentReporter.ReportManager;
+import extentReporter.ReportTestLogger;
+import listeners.RetryAnalyzer;
+import pages.RegisterPage;
+import pages.RegistrationFormData;
+import pages.InputField;
 import com.aventstack.extentreports.ExtentTest;
 import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
 import utils.ExcelUtils;
-import Listeners.Scenario;
+import listeners.Scenario;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.Map;
