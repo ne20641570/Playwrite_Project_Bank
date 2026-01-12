@@ -43,12 +43,6 @@ src/test/java
 - Automatic screenshots
 - Page Object Model
 
-### ✓ API Automation (Rest-Assured)
-- Endpoints
-- Payload Builders
-- API Base
-- Response validators
-
 ### ✓ Reporting
 - Extent Report HTML
 - Screenshots
@@ -67,16 +61,8 @@ src/test/java
 
 ## ▶️ Run Tests
 
-### Run all tests with TestNG:
+### Run all tests with TestNG with parallel testing:
 mvn clean test
-
-
-
-### Run parallel:
-mvn clean test -Dsuite=parallel
-
-
----
 
 ## 📦 Reports
 After execution:
