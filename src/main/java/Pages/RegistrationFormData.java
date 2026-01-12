@@ -20,9 +20,8 @@ public class RegistrationFormData {
         formData.put(InputField.City, TestDataGenerator.randomCity());
         formData.put(InputField.State, TestDataGenerator.randomState());
         formData.put(InputField.ZipCode, TestDataGenerator.randomZipCode());
-        formData.put(InputField.Password, TestDataGenerator.randomPhoneNumber());
         formData.put(InputField.SSN, TestDataGenerator.randomSSN());
-        formData.put(InputField.UserName, TestDataGenerator.randomUsername());
+        formData.put(InputField.UserName, TestDataGenerator.randomUsernameWithFullName(firstName,lastName));
         formData.put(InputField.Password, ConfigReader.getProperty("bank.password"));
         formData.put(InputField.ConfirmPassword, ConfigReader.getProperty("bank.password"));
 

@@ -131,9 +131,9 @@ public class LoginTest extends BaseTest {
             loginErrorFlow(innerTestNode,"", "", "Login without credentials");
 
             // -------Invalid User name credentials--------
-            userName = ExcelUtils.getCellData(readDataSheetName, "UserName") + "123";
+            userName = ExcelUtils.getCellData(readDataSheetName, "UserName") ;
             password = ConfigReader.getProperty("bank.password");
-            loginErrorFlow(innerTestNode,userName, password, "Login with invalid username");
+            loginErrorFlow(innerTestNode,userName+userName, password, "Login with invalid username");
 
 
             // -------Invalid Password credentials--------

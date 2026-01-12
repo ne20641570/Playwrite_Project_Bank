@@ -20,7 +20,6 @@ import java.util.Map;
 @Scenario("TS_01 Registration Page Functionality Validation")
 public class RegistrationTest extends BaseTest {
     private static ThreadLocal<ExtentTest> testTL = new ThreadLocal<>();
-
     private RegisterPage registerPage;
     private String sheetName = "Register";
     private String filePath;
@@ -29,15 +28,6 @@ public class RegistrationTest extends BaseTest {
     ExtentTest innerTestNodes;
 
     // ------------------- Class-level setup for report -------------------
-//    @BeforeClass
-//    public void setupBeforeClass(ITestContext context) {
-//
-//        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
-//        if (scenario != null) {
-//            String testName = context.getCurrentXmlTest().getName();
-//            ReportManager.startTest(context.getName()+"-->"+scenario.value());
-//        }
-//    }
     @BeforeClass
     public void setupBeforeClass(ITestContext context) {
         Scenario scenario = this.getClass().getAnnotation(Scenario.class);
@@ -224,7 +214,11 @@ public class RegistrationTest extends BaseTest {
 
     // ------------------- Utility Method -------------------
     private void fillFieldAndLogForRegister(InputField field, String value, ExtentTest innerTestNode) throws IOException {
-        registerPage.writeIntoField(field.name(), value); // Fill the form
+        registerPage.writeIntoField(field.name(), value);
+        // Fill the form
+        if(field==InputField.Password || field == InputField.ConfirmPassword) {
+           value = "**********";
+        }
         ExcelUtils.writeResult(sheetName, field.name(), value); // Write to Excel
         ReportTestLogger.info(innerTestNode, field.name() + ": " + value); // Log it
     }
