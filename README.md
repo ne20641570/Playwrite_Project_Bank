@@ -1,6 +1,6 @@
-# Playwright Java Framework - Venkat (Enterprise Edition)
+# Playwright Java Framework - Neelanjana K (Enterprise Edition)
 
-This is a complete **Enterprise-Grade Hybrid UI + API Automation Framework** using:
+This is a complete **Enterprise-Grade Hybrid UI Automation Framework** using:
 
 ## 🚀 Tech Stack
 - **Java 17+**
@@ -25,12 +25,10 @@ src/main/java
 ├── base
 ├── config
 ├── pages
-├── api
-├── reporting
+├── ExtentReporter
 ├── utils
 src/test/java
-├── ui
-├── api
+├── tests
 └── listeners
 
 
@@ -54,22 +52,16 @@ src/test/java
 ### ✓ Reporting
 - Extent Report HTML
 - Screenshots
-- Logs
 - Parallel-safe
 
 ### ✓ Data-Driven
 - Excel Reader
-- JSON TestData manager
 
 ### ✓ Robust Utilities
 - Assertion Util
 - Wait Util
 - Browser Utils
 - Environment manager
-
-### ✓ CI/CD
-- GitHub Actions workflow
-- Jenkinsfile
 
 ---
 
@@ -89,8 +81,9 @@ mvn clean test -Dsuite=parallel
 ## 📦 Reports
 After execution:
 Date--> storing datewise for tracking and analysing purpose
-/reports/Date/ExtentReport.html
-/reports/Date/screenshots/
+/reports/extentsReports/Date/
+/reports/screenshots/Date/
+/reports/videos/Date/
 
 
 
