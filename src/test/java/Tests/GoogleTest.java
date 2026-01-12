@@ -14,7 +14,7 @@ import java.io.IOException;
 public class GoogleTest extends BaseTest {
     @BeforeClass
     public void setupBeforeClass() {
-        ReportManager.startTest("Google TS_01 Google Home Page Valiation","GoogleTest");
+//        ReportManager.startTest("Google TS_01 Google Home Page Valiation","GoogleTest");
     }
 
     @Test()
@@ -26,7 +26,7 @@ public class GoogleTest extends BaseTest {
 
             ReportTestLogger.info(testnode, "Navigated to login page");
 
-            RetryAnalyzer.retryStep(page,() -> googlePage.aboutTitleVerify(),testnode);
+            RetryAnalyzer.retryStep(() -> googlePage.aboutTitleVerify(),testnode);
             ReportTestLogger.pass(testnode, "About link is clicked and verified the title");
             ReportTestLogger.info(testnode,page.title());
             ReportTestLogger.addScreenshotBase(testnode, googlePage.captureScreenshotBase("Google AboutLink"));

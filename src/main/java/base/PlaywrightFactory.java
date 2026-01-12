@@ -1,61 +1,70 @@
 package base;
 
+import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.microsoft.playwright.*;
 import config.ConfigReader;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import static utils.FileUtils.createFolderIfNotExists;
+
 public class PlaywrightFactory {
-    private static final ThreadLocal<Browser> browserThread = new ThreadLocal<>();
-    private static final ThreadLocal<BrowserContext> contextThread = new ThreadLocal<>();
-    private static final ThreadLocal<Page> pageThread = new ThreadLocal<>();
-    private static final ThreadLocal<String> videoPathThread = new ThreadLocal<>();
+    private static ThreadLocal<Playwright> playwright = new ThreadLocal<>();
+    private static ThreadLocal<Browser> browser = new ThreadLocal<>();
+    private static ThreadLocal<BrowserContext> context = new ThreadLocal<>();
+    private static ThreadLocal<Page> page = new ThreadLocal<>();
     private static final ThreadLocal<Video> videoThread = new ThreadLocal<>();
-    private static Playwright playwright;
 
-    public static void initBrowser(String browserName, boolean headless) {
-        if (playwright == null) {
-            playwright = Playwright.create();
-        }
+    public static void initBrowser(String browserName,boolean headless) {
 
-        Browser browser;
+        playwright.set(Playwright.create());
+        Browser.NewContextOptions options = new Browser.NewContextOptions();
+
         switch (browserName.toLowerCase()) {
             case "firefox":
-                browser = playwright.firefox().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+                //firefox browser launch and set with headed and added into browser
+                browser.set(playwright.get().firefox().launch(new BrowserType.LaunchOptions().setHeadless(headless)));
                 break;
             case "webkit":
-                browser = playwright.webkit().launch(new BrowserType.LaunchOptions().setHeadless(headless));
+                //safari browser launch and set with headed and added into browser
+                browser.set(playwright.get().webkit().launch(new BrowserType.LaunchOptions().setHeadless(headless)));
                 break;
             default:
-                browser = playwright.chromium().launch(new BrowserType.LaunchOptions().setHeadless(headless));
-                break;
-        }
-        browserThread.set(browser);
-
-        boolean recordVideo = Boolean.parseBoolean(ConfigReader.getProperty("video.record"));
-        String videoDir = ConfigReader.getProperty("video.dir");
-
-        Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
-
-        if (recordVideo) {
-            contextOptions.setRecordVideoDir(Paths.get(videoDir));
-            contextOptions.setRecordVideoSize(1280, 720);
+                //chromium browser launch and set with headed and added into browser
+                browser.set(playwright.get().chromium().launch(new BrowserType.LaunchOptions().setHeadless(headless))); //
         }
 
-        BrowserContext context = browser.newContext(contextOptions);
-        contextThread.set(context);
-        // Default timeout for all actions (click, waitForSelector, etc.)
-        context.setDefaultTimeout(15_000);
+        // Video Recording enabled
+//        boolean recordVideo = Boolean.parseBoolean(ConfigReader.getProperty("video.record"));
+//        String videoDir = ConfigReader.getProperty("video.dir");
+//        Browser.NewContextOptions contextOptions = new Browser.NewContextOptions();
+//        if (recordVideo&retryCount == 1) {
+//            contextOptions.setRecordVideoDir(Paths.get(videoDir));
+//            contextOptions.setRecordVideoSize(1280, 720);
+//        }
+        context.set(browser.get().newContext());
+        page.set(context.get().newPage());
 
-        // Default timeout for page navigation (page load)
-        context.setDefaultNavigationTimeout(15_000);
-        Page page = context.newPage();
-        pageThread.set(page);
+//        if (recordVideo&retryCount == 2) {
+//            videoThread.set(page.get().video());
+//        }
 
-        if (recordVideo) {
-            videoThread.set(page.video());
-        }
+
+    }
+
+    public static Page getPage() {
+        // set default timeout for page
+//        page.get().setDefaultTimeout(15_000);
+//        page.get().setDefaultNavigationTimeout(20_000);
+        return page.get(); //returning value of opened tab
+    }
+
+    public static void closeBrowser() {
+        context.get().close();
+        browser.get().close();
+        playwright.get().close();
     }
 
     public static String saveVideo(String testName) {
@@ -64,8 +73,8 @@ public class PlaywrightFactory {
             if (video == null) return null;
 
             Path tempPath = video.path();
-            String videoDir = ConfigReader.getProperty("video.dir");
-            Path finalPath = Paths.get(videoDir + testName + ".webm");
+            String videoDir = System.getProperty("user.dir")+File.separator+ConfigReader.getProperty("video.dir")+File.separator;
+            Path finalPath = Paths.get(videoDir + createFolderIfNotExists(videoDir)+File.separator+ ".webm");
 
             // Ensure video exists before moving
             video.saveAs(finalPath);
@@ -75,36 +84,4 @@ public class PlaywrightFactory {
             return null;
         }
     }
-
-
-    public static Page getPage() {
-        return pageThread.get();
-    }
-
-    public static String getVideoPath() {
-        return videoPathThread.get();
-    }
-
-    public static BrowserContext getContext() {
-        return contextThread.get();
-    }
-
-    public static Browser getBrowser() {
-        return browserThread.get();
-    }
-
-    public static void closeBrowser() {
-        try {
-            if (pageThread.get() != null) pageThread.get().close();
-            if (contextThread.get() != null) contextThread.get().close();
-            if (browserThread.get() != null) browserThread.get().close();
-            if (playwright != null) playwright.close();
-        } catch (Exception ignored) {}
-
-        pageThread.remove();
-        contextThread.remove();
-        browserThread.remove();
-        videoPathThread.remove();
-    }
-
 }

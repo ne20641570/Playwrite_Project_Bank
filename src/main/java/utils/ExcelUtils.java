@@ -3,10 +3,7 @@ import config.ConfigReader;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.*;
 public class ExcelUtils {
 
@@ -34,6 +31,7 @@ public class ExcelUtils {
         excelFilePath = filePath;
         fis = new FileInputStream(filePath);
         workbook = new XSSFWorkbook(fis);
+//        fis.close();
     }
     public static String getCellData(String sheetName, String columnName) {
         sheet = workbook.getSheet(sheetName);
@@ -175,35 +173,72 @@ public class ExcelUtils {
         fileOutPut();
     }
     public static int getColumnIndex(String sheetName, String columnName) {
-
+        // 1️⃣ Get or create sheet
         Sheet sheet = workbook.getSheet(sheetName);
-        if (sheet == null) {
-            throw new IllegalArgumentException("Sheet not found: " + sheetName);
-        }
-
-        // Assuming header is always first row
-        Row headerRow = sheet.getRow(0);
-        if (headerRow == null) {
-            throw new IllegalStateException("Header row is missing in sheet: " + sheetName);
-        }
-
-        for (Cell cell : headerRow) {
-            String cellValue = cell.getStringCellValue().trim();
-
-            if (cellValue.equalsIgnoreCase(columnName.trim())) {
-                return cell.getColumnIndex();
-            }
-        }
-
-        throw new IllegalArgumentException(
-                "Column '" + columnName + "' not found in sheet: " + sheetName);
-    }
-    // write under specific column name if you want to write this data in to excel call fileoutput method at the end this method
-    public static void writeResult(String sheetName,  String columnName, String value) throws IOException {
-        int colIndex = getColumnIndex(sheetName, columnName);
         if (sheet == null) {
             sheet = workbook.createSheet(sheetName);
         }
+
+        // 2️⃣ Get or create header row (row 0)
+        Row headerRow = sheet.getRow(0);
+        if (headerRow == null) {
+            headerRow = sheet.createRow(0);
+        }
+
+        String targetName = columnName.trim();
+
+        // 3️⃣ Try to find existing column
+        for (Cell cell : headerRow) {
+            if (cell.getCellType() == CellType.STRING) {
+                String cellValue = cell.getStringCellValue().trim();
+                if (cellValue.equalsIgnoreCase(targetName)) {
+                    return cell.getColumnIndex();
+                }
+            }
+        }
+
+        // 4️⃣ Not found → create new column
+        int newColumnIndex = headerRow.getLastCellNum();
+        if (newColumnIndex == -1) {
+            newColumnIndex = 0; // empty row
+        }
+
+        Cell newCell = headerRow.createCell(newColumnIndex, CellType.STRING);
+        newCell.setCellValue(targetName);
+
+        return newColumnIndex;
+
+    }
+    //delete empty cell Row
+    public static void deleteRowIfEmpty(String filePath, String sheetName, String columnName) throws IOException {
+        workbook = new XSSFWorkbook(new FileInputStream(filePath));
+        sheet = workbook.getSheet(sheetName);
+
+        // find column index from header
+        Row header = sheet.getRow(0);
+        int colIndex = -1;
+        for (Cell c : header) {
+            if (c.getStringCellValue().equalsIgnoreCase(columnName)) {
+                colIndex = c.getColumnIndex();
+                break;
+            }
+        }
+
+        // delete rows (bottom to top)
+        for (int i = sheet.getLastRowNum(); i > 0; i--) {
+            Row row = sheet.getRow(i);
+            Cell cell = row == null ? null :
+                    row.getCell(colIndex, Row.MissingCellPolicy.RETURN_BLANK_AS_NULL);
+
+            if (cell == null || cell.toString().trim().isEmpty()) {
+                sheet.removeRow(row);
+//                sheet.shiftRows(i + 1, sheet.getLastRowNum(), -1);
+            }
+        }
+    }
+    // write under specific column name if you want to write this data in to excel call fileoutput method at the end this method
+    public static synchronized void writeResult(String sheetName,  String columnName, String value) throws IOException {
+        int colIndex = getColumnIndex(sheetName, columnName);
         sheet = workbook.getSheet(sheetName);
         if (colIndex == -1) {
 
@@ -241,10 +276,16 @@ public class ExcelUtils {
         cell.setCellValue(value);
 
     }
+
     public static void fileOutPut() throws IOException {
         FileOutputStream fos = new FileOutputStream(excelFilePath);
         workbook.write(fos);
         fos.close();
+
+
+//        try (FileOutputStream fos = new FileOutputStream(excelFilePath)) {
+//            workbook.write(fos);
+//        }
     }
 
     public int getRowCount(String sheetName) {

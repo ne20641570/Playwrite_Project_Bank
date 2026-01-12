@@ -4,368 +4,234 @@ import ExtentReporter.ReportManager;
 import ExtentReporter.ReportTestLogger;
 import Listeners.RetryAnalyzer;
 import Pages.RegisterPage;
-import Pages.TestDataGenerator;
+import Pages.RegistrationFormData;
+import Pages.InputField;
 import com.aventstack.extentreports.ExtentTest;
 import config.ConfigReader;
 import org.testng.Assert;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import org.testng.ITestContext;
+import org.testng.annotations.*;
 import utils.ExcelUtils;
-
+import Listeners.Scenario;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Map;
 
+@Scenario("TS_01 Registration Page Functionality Validation")
 public class RegistrationTest extends BaseTest {
+    private static ThreadLocal<ExtentTest> testTL = new ThreadLocal<>();
+
     private RegisterPage registerPage;
     private String sheetName = "Register";
-    String filePath;
-    @BeforeClass
-    public void setupBeforeClass() throws IOException {
-        ReportManager.startTest("Login TS_01 Registration Page Functionality Validation","RegistrationTest");
-        registerPage = new RegisterPage(page);
-        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+    private String filePath;
+    ExtentTest testnode;
+    ExtentTest innerTestNode;
+    ExtentTest innerTestNodes;
+
+    // ------------------- Class-level setup for report -------------------
+//    @BeforeClass
+//    public void setupBeforeClass(ITestContext context) {
 //
+//        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
+//        if (scenario != null) {
+//            String testName = context.getCurrentXmlTest().getName();
+//            ReportManager.startTest(context.getName()+"-->"+scenario.value());
+//        }
+//    }
+    @BeforeClass
+    public void setupBeforeClass(ITestContext context) {
+        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
+        if (scenario != null) {
+            //            testName = context.getCurrentXmlTest().getName();
+            ReportManager.startTest(context.getName()+"-->"+scenario.value());
+            testTL.set(ReportManager.getTest());
+        }
     }
 
-    //    @Test(retryAnalyzer = RetryAnalyzer.class)
-    @Test(priority = 1)
-    public void registrationPageValidation() throws IOException {
+    // ------------------- Method-level setup -------------------
+    @BeforeMethod
+    public void setupBeforeMethod(Method method,ITestContext context) throws IOException {
+        registerPage = new RegisterPage(page);
 
-        ExtentTest testnode = ReportManager.getTest().createNode("TC01 Registration Page FieldName Verification");
-//        testnode.assignCategory("TC01_verify_field_name_Error_Message");
+        // Read the @Test description dynamically
+        String testDescription = method.isAnnotationPresent(Test.class)
+                ? method.getAnnotation(Test.class).description()
+                : method.getName();
 
-        ExtentTest innerTestNode = testnode;
+        // Create report nodes
+        if (testTL.get() == null) {
+            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+        }
+        testnode = testTL.get().createNode(testDescription);
+//        testnode = ReportManager.getTest().createNode(testDescription);
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Navigating to Register Page");
+
+        // Navigate and log
+        registerPage.navigateTo(ConfigReader.getProperty("bank.url"));
+        ReportTestLogger.info(innerTestNode, "Navigated to URL");
+
+        RetryAnalyzer.retryStep(() -> registerPage.clickFunctionField("registerLink"), innerTestNode);
+        ReportTestLogger.pass(innerTestNode, "Register link is clicked");
+
+        // Log page messages
+        ReportTestLogger.info(innerTestNode, "Register Header: " + registerPage.getMessageOnPage("RegisterTitle"));
+        ReportTestLogger.info(innerTestNode, "Register Message: " + registerPage.getMessageOnPage("RegisterMessage"));
+
+        // Assert page title
+        Assert.assertEquals(registerPage.getRegisterPageTitle(), page.title(), "Page title verification failed!");
+    }
+
+    // ------------------- Test 1: Field Presence -------------------
+    @Test(priority = 1, description = "TC01 Registration Page FieldName Verification")
+    public void registrationPageValidation(Method method) throws IOException {
+        String testDescription = method.getAnnotation(Test.class).description(); // Dynamic description
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Fields");
+
         try {
-            innerTestNode = ReportTestLogger.createinnerNode(testnode,"Navigating to Register Page");
-
-            registerPageNaviagation(innerTestNode);
-
-            // FirstName Field and error
-
-            innerTestNode = ReportTestLogger.createinnerNode(testnode, "verifying the Fields");
-            registerPage.verifyFieldPresence("FirstName");
-            registerPage.verifyFieldPresences("FirstName","Field");
-            ReportTestLogger.info(innerTestNode, "First Name Field is Displayed");
-
-            registerPage.verifyFieldPresence("LastName");
-            ReportTestLogger.info(innerTestNode, "Last Name Field is Displayed");
-
-            registerPage.verifyFieldPresence("Address");
-            ReportTestLogger.info(innerTestNode, "Address Field is Displayed");
-
-            registerPage.verifyFieldPresence("City");
-            ReportTestLogger.info(innerTestNode, "City Field is Displayed");
-
-            registerPage.verifyFieldPresence("State");
-            ReportTestLogger.info(innerTestNode, "State Field is Displayed");
-
-            registerPage.verifyFieldPresence("ZipCode");
-            ReportTestLogger.info(innerTestNode, "Zip Code Field is Displayed");
-
-            registerPage.verifyFieldPresence("PhoneNumber");
-            ReportTestLogger.info(innerTestNode, "Phone number Field is Displayed");
-
-            registerPage.verifyFieldPresence("SSN");
-            ReportTestLogger.info(innerTestNode, "SSN Field is Displayed");
-
-            registerPage.verifyFieldPresence("UserName");
-            ReportTestLogger.info(innerTestNode, "User Name Field is Displayed");
-
-            registerPage.verifyFieldPresence("Password");
-            ReportTestLogger.info(innerTestNode, "Password Field is Displayed");
-
-            registerPage.verifyFieldPresence("ConfirmPassword");
-            ReportTestLogger.info(innerTestNode, "Confirm Password Field is Displayed");
+            for (InputField field : InputField.values()) {
+                registerPage.verifyFieldPresence(field.name());
+                registerPage.verifyInputFieldName(field.name());
+                ReportTestLogger.info(innerTestNode, field.name() + " Field is Displayed");
+            }
 
             ReportTestLogger.pass(innerTestNode, "All Fields are Displayed");
             ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_All_Field_Test"));
-
             ReportTestLogger.pass(testnode, "Field validation has been successfully completed.");
-        } catch (Exception e) {
-            ReportTestLogger.info(innerTestNode, e.getMessage());
-            ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
 
-            throw e;
-        }catch (AssertionError e){
+        } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
             ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
+            throw e;
         }
     }
 
-    @Test(priority = 2)
-    public void errorMessageValidation() throws Exception{
-        ExtentTest testnode = ReportManager.getTest().createNode("TC02 Registration Page Error message Verification");
-//        testnode.assignCategory("TC02_verify_Error_Message");
-        ExtentTest innerTestNode = testnode;
-        String errorMessage = "";
+    // ------------------- Test 2: Error Messages -------------------
+    @Test(priority = 2, description = "TC02 Registration Page Error message Verification")
+    public void errorMessageValidation(Method method) throws Exception {
+        String testDescription = method.getAnnotation(Test.class).description();
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Error Message for Fields");
 
         try {
-            innerTestNode = ReportTestLogger.createinnerNode(testnode,"Navigating to Register Page");
-            registerPageNaviagation(innerTestNode);
+            for (InputField field : InputField.values()) {
+                if(field!=InputField.PhoneNumber) {
+                    String errorMessage = registerPage.verifyErrorMessage(field.name());
+                    ReportTestLogger.info(innerTestNode, field.name() + " Error Message is Displayed");
+                    ReportTestLogger.pass(innerTestNode, errorMessage);
+                }
+            }
 
-            //Verifying All Error Message
-            innerTestNode = ReportTestLogger.createinnerNode(testnode, "verifying the Error Message for Fields");
-
-            errorMessage = registerPage.verifyErrorMessage("FirstName");
-            ReportTestLogger.info(innerTestNode, "First name Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("LastName");
-            ReportTestLogger.info(innerTestNode, "Last name Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("Address");
-            ReportTestLogger.info(innerTestNode, "Address Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("City");
-            ReportTestLogger.info(innerTestNode, "City Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("State");
-            ReportTestLogger.info(innerTestNode, "State Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("ZipCode");
-            ReportTestLogger.info(innerTestNode, "Zip Code Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-//            errorMessage = registerPage.verifyErrorMessage("PhoneNumber");
-//            ReportTestLogger.info(innerTestNode, "Phone Number Error Message is Displayed ");
-//            ReportTestLogger.pass(innerTestNode,errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("SSN");
-            ReportTestLogger.info(innerTestNode, "SSN Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("UserName");
-            ReportTestLogger.info(innerTestNode, "User name Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("Password");
-            ReportTestLogger.info(innerTestNode, "Password Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            errorMessage = registerPage.verifyErrorMessage("ConfirmPassword");
-            ReportTestLogger.info(innerTestNode, "Confirm Password Error Message is Displayed ");
-            ReportTestLogger.pass(innerTestNode, errorMessage);
-
-            ReportTestLogger.pass(innerTestNode, "All Error Message is Displayed");
+            ReportTestLogger.pass(innerTestNode, "All Error Messages are Displayed");
             ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_All_Error_Message_Test"));
+            ReportTestLogger.pass(testnode, "Error message validation completed successfully.");
 
-            ReportTestLogger.pass(testnode, "Error message validation has been successfully completed.");
-
-
-        }catch (Exception e) {
+        } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
             ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
-
             throw e;
-        }catch (AssertionError e){
-            ReportTestLogger.info(innerTestNode, e.getMessage());
-            ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
         }
-
     }
 
-    @Test(priority = 3)
-    public void passwordErrorMessageValidation() throws Exception {
-        ExtentTest testnode = ReportManager.getTest().createNode("TC03 Registration Page Confirm Password Error message Verification");
-//        testnode.assignCategory("TC02_verify_Error_Message");
-        ExtentTest innerTestNode = testnode;
-        String errorMessage = "";
+    // ------------------- Test 3: Confirm Password Error -------------------
+    @Test(priority = 3, retryAnalyzer = RetryAnalyzer.class, description = "TC03 Registration Page Confirm Password Error message Verification")
+    public void passwordErrorMessageValidation(Method method) throws Exception {
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Writing input to form.");
+        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         ExcelUtils.openExcel(filePath);
+
         try {
+            // Get test data
+            Map<InputField, String> formData = RegistrationFormData.getFormData("", "");
 
-            innerTestNode = ReportTestLogger.createinnerNode(testnode,"Navigating to Register Page");
-            registerPageNaviagation(innerTestNode);
+            // Fill all fields except ConfirmPassword
+            for (Map.Entry<InputField, String> entry : formData.entrySet()) {
+                if (entry.getKey() != InputField.ConfirmPassword) {
+                    fillFieldAndLogForRegister(entry.getKey(), entry.getValue(), innerTestNode);
+                }
+            }
 
-            //writing data into form to register
+            // Enter mismatched ConfirmPassword
+            String passwordIs = formData.get(InputField.Password);
+            registerPage.writeIntoField(InputField.Password.name(), passwordIs);
+            ReportTestLogger.info(innerTestNode, "Password: ********");
 
-            innerTestNode = ReportTestLogger.createinnerNode(testnode, "Writing input to form to register with two different password");
+            String confirmPasswordIs = passwordIs + "123";
+            registerPage.writeIntoField(InputField.ConfirmPassword.name(), confirmPasswordIs);
+            ReportTestLogger.info(innerTestNode, "ConfirmPassword: ********123");
 
-            String firstName = TestDataGenerator.randomFirstName();
-            fillFieldAndLogForRegister("FirstName",firstName,innerTestNode);
-
-            String lastName = TestDataGenerator.randomLastName();
-            fillFieldAndLogForRegister("LastName",lastName,innerTestNode);
-
-            String address = TestDataGenerator.randomStreet();
-            fillFieldAndLogForRegister("Address",address,innerTestNode);
-
-            String city = TestDataGenerator.randomCity();
-            fillFieldAndLogForRegister("City",city,innerTestNode);
-
-            String state = TestDataGenerator.randomState();
-            fillFieldAndLogForRegister("State",state,innerTestNode);
-
-            String zipCode = TestDataGenerator.randomZipCode();
-            fillFieldAndLogForRegister("ZipCode",zipCode,innerTestNode);
-
-            String phoneNumber = TestDataGenerator.randomPhoneNumber();
-            fillFieldAndLogForRegister("PhoneNumber",phoneNumber,innerTestNode);
-
-            String ssn = TestDataGenerator.randomSSN();
-            fillFieldAndLogForRegister("SSN",ssn,innerTestNode);
-
-            String userName = TestDataGenerator.randomUsername();
-            fillFieldAndLogForRegister("UserName",userName,innerTestNode);
-
-            String passwordIs = ConfigReader.getProperty("bank.password");
-            String passwordExcel = "********";
-            registerPage.fillForm("Password", passwordIs);
-            ExcelUtils.writeResult(sheetName,"Password",passwordExcel);
-            ReportTestLogger.info(innerTestNode, "Password: "+passwordExcel);
-
-            String confirmPasswordIs = ConfigReader.getProperty("bank.password")+"asdf";
-            registerPage.fillForm("ConfirmPassword", confirmPasswordIs);
-            ExcelUtils.writeResult(sheetName,"ConfirmPassword",passwordExcel+"****");
-            ReportTestLogger.info(innerTestNode, "ConfirmPassword: "+passwordExcel+"****");
-
-            errorMessage = registerPage.verifyErrorMessage("ConfirmPassword");
-//            errorMessage = registerPage.getErrorField("ConfirmPassword");
+            // Validate error
+            String errorMessage = registerPage.verifyErrorMessage(InputField.ConfirmPassword.name());
             ReportTestLogger.info(innerTestNode, "Confirm Password Error Message is Displayed ");
             ReportTestLogger.pass(innerTestNode, errorMessage);
 
             ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_Confirm_Error_Message_Test"));
-            ReportTestLogger.pass(testnode, "Password mismatch validation has been successfully completed.");
-
-        }catch (Exception e) {
+            ReportTestLogger.pass(testnode, "Password mismatch validation completed successfully.");
+            ExcelUtils.closeExcel();
+        } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
             ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
-
             throw e;
-        }catch (AssertionError e){
-            ReportTestLogger.info(innerTestNode, e.getMessage());
-            ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
         }
     }
 
-
-    @Test(priority = 4)
-    public void registrationWithValidData() throws IOException {
-
-        ExtentTest testnode = ReportManager.getTest().createNode("TC04 Registration with Valid data");
-//        testnode.assignCategory("TC03_registration_with_valid_data");
-        ExtentTest innerTestNode = testnode;
-        ExtentTest innerTestNodes ;
+    // ------------------- Test 4: Successful Registration -------------------
+    @Test(priority = 4, retryAnalyzer = RetryAnalyzer.class, description = "TC04 Registration with Valid data")
+    public void registrationWithValidData(Method method) throws IOException {
+        String testDescription = method.getAnnotation(Test.class).description();
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Entered required details in the registration form");
+        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         ExcelUtils.openExcel(filePath);
+
         try {
+            // Generate test data
+            Map<InputField, String> fieldsToFill = RegistrationFormData.getFormData("", "");
 
-            innerTestNode = ReportTestLogger.createinnerNode(testnode,"Navigating to Register Page");
-
-            registerPageNaviagation(innerTestNode);
-
-            //writing data into form to register
-
-            innerTestNode = ReportTestLogger.createinnerNode(testnode, "Entered required details in the registration form and submitted for validation");
-
-            String firstName = TestDataGenerator.randomFirstName();
-            fillFieldAndLogForRegister("FirstName",firstName,innerTestNode);
-
-            String lastName = TestDataGenerator.randomLastName();
-            fillFieldAndLogForRegister("LastName",lastName,innerTestNode);
-
-            String address = TestDataGenerator.randomStreet();
-            fillFieldAndLogForRegister("Address",address,innerTestNode);
-
-            String city = TestDataGenerator.randomCity();
-            fillFieldAndLogForRegister("City",city,innerTestNode);
-
-            String state = TestDataGenerator.randomState();
-            fillFieldAndLogForRegister("State",state,innerTestNode);
-
-            String zipCode = TestDataGenerator.randomZipCode();
-            fillFieldAndLogForRegister("ZipCode",zipCode,innerTestNode);
-
-            String phoneNumber = TestDataGenerator.randomPhoneNumber();
-            fillFieldAndLogForRegister("PhoneNumber",phoneNumber,innerTestNode);
-
-            String ssn = TestDataGenerator.randomSSN();
-            fillFieldAndLogForRegister("SSN",ssn,innerTestNode);
-
-            String userName = TestDataGenerator.randomUsernameWithFullName(firstName,lastName);
-            fillFieldAndLogForRegister("UserName",userName,innerTestNode);
-
-            String passwordIs = ConfigReader.getProperty("bank.password");
-            String passwordExcel = "********";
-            registerPage.fillForm("Password", passwordIs);
-            ExcelUtils.writeResult(sheetName,"Password",passwordExcel);
-            ReportTestLogger.info(innerTestNode, "Password: "+passwordExcel);
-
-            String confirmPasswordIs = ConfigReader.getProperty("bank.password");
-            registerPage.fillForm("ConfirmPassword", confirmPasswordIs);
-            ExcelUtils.writeResult(sheetName,"ConfirmPassword",passwordExcel);
-            ReportTestLogger.info(innerTestNode, "ConfirmPassword: "+passwordExcel);
-
+            // Fill all fields
+            for (Map.Entry<InputField, String> entry : fieldsToFill.entrySet()) {
+                fillFieldAndLogForRegister(entry.getKey(), entry.getValue(), innerTestNode);
+            }
 
             ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_Test"));
-            registerPage.clickFunctionOnField("RegisterButton");
-//            registerPage.clickFunctionOnFields("RegisterButton");
+            RetryAnalyzer.retryStep(() -> registerPage.clickFunctionField("RegisterButton"), testnode);
 
-            innerTestNodes = ReportTestLogger.createinnerNode(testnode,"Verifying Welcome Page");
+            // Verify Welcome Page
+            innerTestNodes = ReportTestLogger.createinnerNode(testnode, "Verifying Welcome Page | Test: " + testDescription);
+            innerTestNode = ReportTestLogger.createinnerNode(innerTestNodes, "Welcome Page Validation");
 
-            innerTestNode = ReportTestLogger.createinnerNode(innerTestNodes,"Welcome Page Validation");
-            String expectedTitle = registerPage.verifyWelComePage("WelcomeTitle");
-            Assert.assertTrue(expectedTitle.toLowerCase().contains(userName));
+            String expectedTitle = registerPage.getMessageOnPage("WelcomeTitle");
+            String userName = fieldsToFill.get(InputField.UserName);
+            Assert.assertTrue(expectedTitle.toLowerCase().contains(userName.toLowerCase()));
 
-            ReportTestLogger.info(innerTestNode,"Title: "+expectedTitle);
-            ReportTestLogger.info(innerTestNode,"Welcome Message: "+registerPage.verifyWelComePage("WelcomeSuccessMessage"));
-            ReportTestLogger.pass(innerTestNode,"Title is matched");
+            ReportTestLogger.info(innerTestNode, "Title: " + expectedTitle);
+            ReportTestLogger.info(innerTestNode, "Welcome Message: " + registerPage.getMessageOnPage("WelcomeSuccessMessage"));
+            ReportTestLogger.pass(innerTestNode, "Title is matched");
 
-            ReportTestLogger.pass(innerTestNodes,"Welcome Page validation is completed successfully");
+            ReportTestLogger.pass(innerTestNodes, "Welcome Page validation completed successfully");
             ReportTestLogger.addScreenshotBase(innerTestNodes, registerPage.captureScreenshotBase("Registration_Welcome_Page"));
 
             ReportTestLogger.pass(testnode, "User registration form completed successfully");
-
             ExcelUtils.fileOutPut();
-        } catch (Exception e) {
+
+        } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
             ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
-            throw e;
-        }catch (AssertionError e){
-            ReportTestLogger.info(innerTestNode, e.getMessage());
-            ReportTestLogger.fail(innerTestNode, "Failed");
-//            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Assertion_Fail"));
             throw e;
         }
     }
 
-    private void fillFieldAndLogForRegister(String fieldName, String value, ExtentTest innerTestNode) throws IOException {
-        registerPage.fillForm(fieldName, value);                  // Fill the form
-        ExcelUtils.writeResult(sheetName, fieldName, value);     // Write to Excel
-        ReportTestLogger.info(innerTestNode, fieldName + ": " + value); // Log it
+    // ------------------- Utility Method -------------------
+    private void fillFieldAndLogForRegister(InputField field, String value, ExtentTest innerTestNode) throws IOException {
+        registerPage.writeIntoField(field.name(), value); // Fill the form
+        ExcelUtils.writeResult(sheetName, field.name(), value); // Write to Excel
+        ReportTestLogger.info(innerTestNode, field.name() + ": " + value); // Log it
     }
 
-    private void registerPageNaviagation(ExtentTest innerTestNode){
-        registerPage.navigateTo(ConfigReader.getProperty("bank.url"));
-        ReportTestLogger.info(innerTestNode, "Navigated to Url");
-
-        RetryAnalyzer.retryStep(page,() -> registerPage.clickFunctionOnField("registerLink"),innerTestNode);
-        ReportTestLogger.pass(innerTestNode, "Register link is clicked ");
-
-        String registerTitle = registerPage.verifyWelComePage("RegisterTitle");
-        String registerMessage = registerPage.verifyWelComePage("RegisterMessage");
-        ReportTestLogger.info(innerTestNode, "Register Header: "+registerTitle);
-        ReportTestLogger.info(innerTestNode, "Register Message: "+registerMessage);
-
-        Assert.assertEquals(registerPage.getRegisterPageTitle(), page.title(),"Page title verification failed!" );
-
-
+    @AfterClass
+    public void tearDown() {
+        testTL.remove();
+        ReportManager.endTest();
     }
 }
-

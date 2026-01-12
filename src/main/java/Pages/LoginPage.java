@@ -15,6 +15,7 @@ public class LoginPage extends BasePage {
 
     private final String welcomePageTitle = "ParaBank | Accounts Overview";
     private final String errorPageTitle="ParaBank | Error";
+    private final String loginPageTitle="ParaBank | Welcome | Online Banking";
 
     public String getErrorPageTitle() {
         return errorPageTitle;
@@ -64,68 +65,20 @@ public class LoginPage extends BasePage {
     public LoginPage(Page page) {
         super(page);
     }
-
-    private void verifyInputField(String inputField) {
-        switch (inputField.toLowerCase()) {
+    private String getFieldSelector(String input){
+        switch (input.toLowerCase()) {
             case "username":
-                verifyElement(userNameField);
-                verifyElement(username);
-                break;
+                return username;
             case "password":
-                verifyElement(passwordField);
-                verifyElement(password);
-                break;
+                return password;
+            case "usernamefield":
+                return userNameField;
+            case "passwordfield":
+                return passwordField;
             case "forgot":
-                verifyElement(forgotPasswordLink);
-                break;
+                return forgotPasswordLink;
             case "register":
-                verifyElement(registerUserLink);
-                break;
-            case "services":
-                verifyElement(servicesTab);
-                break;
-            case "latestnews":
-                verifyElement(latestNews);
-                break;
-            case "readmoreservice":
-                verifyElement(readMoreService);
-                break;
-            case "readmorenews":
-                verifyElement(readMoreNews);
-                break;
-            default:
-                break;
-        }
-    }
-    private List<String> verifyAndReadField(String inputField){
-        List<String> fieldTexts;
-        switch (inputField.toLowerCase()) {
-            case "servicetabname":
-                verifyElement(serviceTabName);
-                fieldTexts=getMultipleElementText(serviceTabName);
-                break;
-            case "servicetablinks":
-                verifyElement(serviceTabLinks);
-                fieldTexts=getMultipleElementText(serviceTabLinks);
-                break;
-            case "latestnewstabnames":
-                verifyElement(latestNewsTabName);
-                fieldTexts=getMultipleElementText(latestNewsTabName);
-                break;
-            case "latestnewstablinks":
-                verifyElement(latestNewsTabLinks);
-                fieldTexts=getMultipleElementText(latestNewsTabLinks);
-                break;
-            default:
-                fieldTexts= Collections.singletonList(" ");
-                break;
-        }
-
-        return fieldTexts;
-    }
-
-    private String returnElements(String inputField){
-        switch (inputField.toLowerCase()) {
+                return registerUserLink;
             case "servicetabname":
                 return serviceTabName;
             case "servicetablinks":
@@ -133,71 +86,62 @@ public class LoginPage extends BasePage {
             case "latestnewstabnames":
                 return latestNewsTabName;
             case "latestnewstablinks":
-                return serviceTabLinks;
+                return latestNewsTabName;
+            case "loginbutton":
+                return loginButton;
             case "services":
                 return servicesTab;
             case "latestnews":
                 return latestNews;
+            case "readmoreservice":
+                return readMoreService;
+            case "readmorenews":
+                return readMoreNews;
+                case "errortitle":
+                return errorTitle;
+            case "errormessage":
+                return errorMessage;
             default:
-                return null;
+                throw new IllegalArgumentException("Unknown field: " + input);
         }
     }
-
-    public void enterUsername(String usernameIs) {
+    private void enterUsername(String usernameIs) {
         typeText(username, usernameIs);
     }
-
-    public void enterPassword(String passwordIs) {
+    private void enterPassword(String passwordIs) {
         typeText(password,passwordIs);
     }
 
-    public void clickLogin() {
-        clickElement(loginButton);
-    }
+    public String verifyPageMessage(String inputField){
+        return getElementText(getFieldSelector(inputField));
 
+    }
+    public void verifyField(String inputField){
+        verifyElementDisplayed(getFieldSelector(inputField));
+    }
+    public void clickFunctionField(String inputField) {
+        clickElement(getFieldSelector(inputField));
+    }
     public int countTabs(String fieldToCount){
-       return page.locator(returnElements(fieldToCount)).count();
+       return page.locator(getFieldSelector(fieldToCount)).count();
     }
 
-    public String verifyPageMessage(String field){
-        switch (field.toLowerCase()){
-            case "welcometitle":
-                verifyElement(welcomeTitle);
-                return getElementText(welcomeTitle);
-//                break;
-            case "accounttitle":
-                verifyElement(accountTable);
-                return getElementText(accountTable);
-            case "errortitle":
-                verifyElement(errorTitle);
-                return getElementText(errorTitle);
-            case "errormessage":
-                verifyElement(errorMessage);
-                return getElementText(errorMessage);
-//                break;
-            default:
-                return "null";
-        }
-    }
-
-    public void verifyFields(String field){
-        verifyInputField(field);
-    }
     public void verifyAndReadFieldText(ExtentTest test,String field){
-        List<String> fieldTexts = verifyAndReadField(field);
+        List<String> fieldTexts = getMultipleElementText(getFieldSelector(field));
         for(int i=0;i<fieldTexts.size();i++){
             test.info(fieldTexts.get(i));
         }
     }
-
     public void login(String userNameIs,String passwordIs) {
         enterUsername(userNameIs);
         //ExtentLogger.pass(testnode,"Username entered as: "+username);
         enterPassword(passwordIs);
         //ExtentLogger.pass("Password entered as: "+password);
-        clickLogin();
+        clickFunctionField("loginbutton");
     }
 
 
-
+    public String getLoginPageTitle() {
+        return loginPageTitle;
+    }
 }

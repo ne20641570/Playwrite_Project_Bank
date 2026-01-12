@@ -1,19 +1,12 @@
 package Pages;
 
 import base.BasePage;
-import com.aventstack.extentreports.model.Test;
-import com.microsoft.playwright.BrowserType;
-import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
-import org.apache.poi.ss.formula.atp.Switch;
-import utils.FormFieldSelectors;
-import utils.InputField;
 
 public class RegisterPage extends BasePage {
 
     private final String fieldInput="/ancestor::tr/child::td/b";
     private final String errorMessage ="/ancestor::tr/child::td/child::span";
-    private final FormFieldSelectors selectors;
     //page Titles
     private String registerPageTitle = "ParaBank | Register for Free Online Account Access";
     private String welcomePageTitle = "ParaBank | Customer Created";
@@ -169,23 +162,34 @@ public class RegisterPage extends BasePage {
 
     public RegisterPage(Page page) {
         super(page);
-        selectors = new FormFieldSelectors(
-                "firstName", "lastName", "address", "city", "state", "zipCode",
-                "phoneNumber", "ssnNumber", "userName", "password", "confirmPassword",
-                "FieldInputSuffix", "ErrorMessageSuffix"
-        );
     }
 
-
-
-    private String getSelector(String field, String isError) {
+    private String getNonFieldSelector(String input){
+        switch (input.toLowerCase()) {
+            case "welcometitle":
+                return welcomeTitle;
+            case "welcomesuccessmessage":
+                return welcomeSuccessMessage;
+            case "registertitle":
+                return registerTitle;
+            case "registermessage":
+                return registerMessage;
+            case "registerlink":
+                return registerLink;
+            case "registerbutton":
+                return registerButton;
+            default:
+                throw new IllegalArgumentException("Unknown field: " + input);
+        }
+    }
+    private String getFieldElements(String input,String type){
         String suffix = "";
-        if (isError == "Error") {
-            suffix = errorMessage;
-        } else if (isError == "FieldName") suffix = fieldInput;
-        else if (isError == "Field") suffix = "";
 
-        switch (field.toLowerCase()) {
+        if (type == "Error") suffix = errorMessage;
+        else if (type == "FieldName") suffix = fieldInput;
+        else if (type == "Field") suffix = "";
+
+        switch (input.toLowerCase()) {
             case "firstname":
                 return firstName + suffix;
             case "lastname":
@@ -198,10 +202,10 @@ public class RegisterPage extends BasePage {
                 return state + suffix;
             case "zipcode":
                 return zipCode + suffix;
-            case "phonenumber":
-                return phoneNumber + suffix;
             case "ssn":
                 return ssnNumber + suffix;
+            case "phonenumber":
+                return phoneNumber + suffix;
             case "username":
                 return userName + suffix;
             case "password":
@@ -209,258 +213,32 @@ public class RegisterPage extends BasePage {
             case "confirmpassword":
                 return confirmPassword + suffix;
             default:
-                throw new IllegalArgumentException("Unknown field: " + field);
+                throw new IllegalArgumentException("Unknown field: " + input);
         }
     }
-
-    private void getInputField(InputField field) {
-        verifyInputFields(selectors.getSelector(field, "Field"));
+    public void verifyFieldPresence(String field) {
+        verifyElementDisplayed(getFieldElements(field,"Field"));
     }
-    private void getInputFieldName(InputField field) {
-        verifyInputFields(selectors.getSelector(field, "FieldName"));
+    public void writeIntoField(String field,String input){
+        typeText(getFieldElements(field,"Field"),input);
     }
-
-    private String getErrorField(InputField field) {
-        verifyInputFields( selectors.getSelector(field, "Error"));
-        return getElementText(selectors.getSelector(field,"Error"));
+    public void verifyInputFieldName(String field) {
+        verifyElementDisplayed(getFieldElements(field, "FieldName"));
     }
-
-    public void verifyInputFields(String inputField){
-        verifyElement(inputField);
+    public String verifyErrorMessage(String field) {
+        clickFunctionField("RegisterButton");
+        verifyElementDisplayed(getFieldElements(field, "Error"));
+        return getElementText(getFieldElements(field,"Error"));
     }
-
-    private void verifyInputField(String inputField) {
-        switch (inputField.toLowerCase()) {
-            case "firstname":
-                verifyElement(firstNameField);
-                verifyElement(firstName);
-                break;
-            case "lastname":
-                verifyElement(lastNameField);
-                verifyElement(lastName);
-                break;
-            case "address":
-                verifyElement(addressField);
-                verifyElement(address);
-                break;
-            case "city":
-                verifyElement(cityField);
-                verifyElement(city);
-                break;
-            case "state":
-                verifyElement(stateField);
-                verifyElement(state);
-                break;
-            case "zipcode":
-                verifyElement(zipCodeField);
-                verifyElement(zipCode);
-                break;
-            case "phonenumber":
-                verifyElement(phoneNumberField);
-                verifyElement(phoneNumber);
-                break;
-            case "ssn":
-                verifyElement(ssnNumberField);
-                verifyElement(ssnNumber);
-                break;
-            case "username":
-                verifyElement(userNameField);
-                verifyElement(userName);
-                break;
-            case "password":
-                verifyElement(passwordField);
-                verifyElement(password);
-                break;
-            case "confirmpassword":
-                verifyElement(confirmPasswordField);
-                verifyElement(confirmPassword);
-                break;
-            default:
-                break;
-        }
+    public void clickFunctionField(String inputField) {
+        clickElement(getNonFieldSelector(inputField));
+    }
+    public String getMessageOnPage(String inputField){
+        return getElementText(getNonFieldSelector(inputField));
     }
 
-    private String verifyInputErrorMessage(String inputField) {
-        switch (inputField.toLowerCase()) {
-            case "firstname":
-                verifyElement(firstNameError);
-                return firstNameError;
-//                break;
-            case "lastname":
-                verifyElement(lastNameError);
-                return lastNameError;
-//                break;
-            case "address":
-                verifyElement(addressError);
-                return addressError;
-//                break;
-            case "city":
-                verifyElement(cityError);
-                return cityError;
-//                break;
-            case "state":
-                verifyElement(stateError);
-                return stateError;
-//                break;
-            case "zipcode":
-                verifyElement(zipCodeError);
-                return zipCodeError;
-//                break;
-            case "phonenumber":
-                verifyElement(phoneNumberError);
-                return phoneNumberError;
-//                break;
-            case "ssn":
-                verifyElement(ssnNumberErorr);
-                return ssnNumberErorr;
-//                break;
-            case "username":
-                verifyElement(userNameError);
-                return userNameError;
-//                break;
-            case "password":
-                verifyElement(passwordError);
-                return passwordError;
-//                break;
-            case "confirmpassword":
-                verifyElement(confirmPasswordError);
-                return confirmPasswordError;
-//                break;
-            default:
 
-                return null;
-//                break;
-        }
-    }
-    private void clickingFunction(String inputField) {
-        switch (inputField.toLowerCase()) {
-            case "firstname":
-                clickElement(firstName);
-                break;
-            case "lastname":
-                clickElement(lastName);
-                break;
-            case "address":
-                clickElement(address);
-                break;
-            case "city":
-                clickElement(city);
-                break;
-            case "state":
-                clickElement(state);
-                break;
-            case "zipcode":
-                clickElement(zipCode);
-                break;
-            case "phonenumber":
-                clickElement(phoneNumber);
-                break;
-            case "ssn":
-                clickElement(ssnNumber);
-                break;
-            case "username":
-                clickElement(userName);
-                break;
-            case "password":
-                clickElement(password);
-                break;
-            case "confirmpassword":
-                clickElement(confirmPassword);
-                break;
-            case "registerbutton":
-                clickElement(registerButton);
-                break;
-            case "registerlink":
-                clickElement(registerLink);
-                break;
-            default:
 
-                break;
-        }
-    }
-private void writeIntoInputField(String inputField,String inputMessage) {
-        switch (inputField.toLowerCase()) {
-            case "firstname":
-                typeText(firstName,inputMessage);
-                break;
-            case "lastname":
-                typeText(lastName,inputMessage);
-                break;
-            case "address":
-                typeText(address,inputMessage);
-                break;
-            case "city":
-                typeText(city,inputMessage);
-                break;
-            case "state":
-                typeText(state,inputMessage);
-                break;
-            case "zipcode":
-                typeText(zipCode,inputMessage);
-                break;
-            case "phonenumber":
-                typeText(phoneNumber,inputMessage);
-                break;
-            case "ssn":
-                typeText(ssnNumber,inputMessage);
-                break;
-            case "username":
-                typeText(userName,inputMessage);
-                break;
-            case "password":
-                typeText(password,inputMessage);
-                break;
-            case "confirmpassword":
-                typeText(confirmPassword,inputMessage);
-                break;
-            default:
-
-                break;
-        }
-    }
-
-    public void verifyFieldPresence(String field){
-        verifyInputField(field);
-    }
-    public void clickFunctionOnField(String inputField) {
-        clickingFunction(inputField);
-    }
-    public String verifyErrorMessage(String field){
-        clickElement(registerButton);
-        return getElementText(verifyInputErrorMessage(field));
-    }
-    public void fillForm(String field,String inputMessage){
-        writeIntoInputField(field,inputMessage);
-    }
-
-    public void verifyFieldPresences(String locator,String type) {
-        verifyElement(getLocator(locator,type));
-    }
-
-    private String getLocator(String inputField, String fieldType){
-        return getSelector(inputField,fieldType);
-    }
-
-    public String verifyWelComePage(String field){
-        switch (field.toLowerCase()){
-            case "welcometitle":
-                verifyElement(welcomeTitle);
-                return getElementText(welcomeTitle);
-//                break;
-            case "welcomesuccessmessage":
-                verifyElement(welcomeSuccessMessage);
-                return getElementText(welcomeSuccessMessage);
-            case "registertitle":
-                verifyElement(registerTitle);
-                return getElementText(registerTitle);
-            case "registermessage":
-                verifyElement(registerMessage);
-                return getElementText(registerMessage);
-//                break;
-            default:
-                return "null";
-        }
-    }
 
 
 }

@@ -1,28 +1,21 @@
-<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd" >
-<suite name="Playwright Parallel Suite" parallel="tests" thread-count="6">
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Playwright Parallel Suite" parallel="tests" thread-count="3">
 
     <test name="Chromium_Test">
-        <parameter name="browser" value="CHROMIUM"/>
+        <parameter name="browser" value="chromium"/>
         <classes>
             <class name="Tests.RegistrationTest"/>
+            <class name="Tests.LoginTest"/>
+            <class name="Tests.ForgotTest"/>
         </classes>
     </test>
-    <test name="Firefox_Test">
-        <parameter name="browser" value="FIREFOX"/>
-        <classes>
-            <class name="Tests.RegistrationTest"/>
-        </classes>
-    </test>
-<!--    <test name="Mobile_Test">-->
-<!--        <parameter name="mobile" value="MOBILE"/>-->
-<!--        <classes>-->
-<!--            <class name="Tests.RegistrationTest"/>-->
-<!--        </classes>-->
-<!--    </test>-->
+
     <test name="Webkit_Test">
-        <parameter name="browser" value="WEBKIT"/>
+        <parameter name="browser" value="webkit"/>
         <classes>
             <class name="Tests.RegistrationTest"/>
+            <class name="Tests.LoginTest"/>
+            <class name="Tests.ForgotTest"/>
         </classes>
     </test>
 

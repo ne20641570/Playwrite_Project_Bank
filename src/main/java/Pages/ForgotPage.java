@@ -2,11 +2,11 @@ package Pages;
 
 import base.BasePage;
 import com.microsoft.playwright.Page;
-import utils.InputField;
 
 public class ForgotPage extends BasePage {
 
     private final String forgotLink = "//a[contains(@href,'look') and contains(text(),'Forgot')]";
+    private final String logoutLink = "//a[contains(@href,'logout') and contains(text(),'Log')]";
 
     private final String fieldInput="/ancestor::tr/child::td/b";
     private final String errorMessage ="/ancestor::tr/child::td/child::span";
@@ -57,7 +57,7 @@ public class ForgotPage extends BasePage {
     //forgotOpenPage
     private final String successPageTitle = "//h1[@class='title']";
     private final String successPageMessage = "//p[contains(text(),'located')]";
-    private final String successPageUserName="//h1[@class='title']/following::b[contains(text(),'name')]";
+    private final String successPageCredentials="//h1[@class='title']/following::p[2]";
     private final String successPagePassword="//h1[@class='title']/following::b[contains(text(),'word')]";
 
 
@@ -78,24 +78,24 @@ public class ForgotPage extends BasePage {
         switch (input.toLowerCase()) {
             case "forgotlink":
                 return forgotLink;
+            case "logoutlink":
+                return logoutLink;
             case "forgottitle":
                 return forgotTitle;
             case "forgotmessage":
                 return forgotMessage;
             case "errortitle":
-                return forgotTitle;
+                return errorInfoTitle;
             case "errormessage":
-                return forgotMessage;
+                return errorInfoMessage;
             case "findmyinfobutton":
                 return findMyInfoButton;
             case "successtitle":
                 return successPageTitle;
             case "successmessage":
                 return successPageMessage;
-            case "successusername":
-                return successPageUserName;
-            case "successpassword":
-                return successPagePassword;
+            case "successpagecredentials":
+                return successPageCredentials;
             default:
                 throw new IllegalArgumentException("Unknown field: " + input);
         }
@@ -128,21 +128,20 @@ public class ForgotPage extends BasePage {
         }
     }
 
-
     public void verifyInputField(String field) {
-        verifyElement(returningFieldElements(field, "Field"));
+        verifyElementDisplayed(returningFieldElements(field, "Field"));
     }
     public void writeIntoField(String field,String input){
         typeText(returningFieldElements(field,"Field"),input);
     }
     public void verifyInputFieldName(String field) {
-        verifyElement(returningFieldElements(field, "FieldName"));
+        verifyElementDisplayed(returningFieldElements(field, "FieldName"));
     }
     public String getErrorMessageField(String field) {
-        verifyElement( returningFieldElements(field, "Error"));
+        clickFunctionField("FindMyInfoButton");
+        verifyElementDisplayed( returningFieldElements(field, "Error"));
         return getElementText(returningFieldElements(field,"Error"));
     }
-
     public void clickFunctionField(String inputField) {
         clickElement(returnNonFormElements(inputField));
     }
