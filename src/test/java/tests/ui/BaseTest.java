@@ -1,4 +1,4 @@
-package tests;
+package tests.ui;
 
 import extentReporter.ReportManager;
 import com.microsoft.playwright.*;
@@ -6,14 +6,19 @@ import config.ConfigReader;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 import org.testng.annotations.*;
+import pages.InputField;
+import utils.DBUtils;
 import utils.ExcelUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
+import java.util.List;
 
 import static utils.FileUtils.createFolderIfNotExists;
 import static utils.FileUtils.deleteOldFolders;
@@ -28,25 +33,26 @@ public class BaseTest {
     private int invocation;
     private int resultStatus;
     private String methodName;
-
+    private String reportPath;
+    private String screenshotPath;
+    private String videoPath;
 
     protected Page page;
 
     // ------------------- Class-level setup -------------------
     @Parameters({"browser"})
     @BeforeClass(alwaysRun = true)
-    public void setUp(@Optional("chromium") String browserName, ITestContext context,Method method,ITestResult result) {
+    public void setUp(@Optional("chromium") String browserName, ITestContext context,Method method,ITestResult result) throws IOException, SQLException {
 
         // ✅ Create necessary folders once
-        String base = System.getProperty("user.dir");
-        createFolderIfNotExists(base + File.separator + ConfigReader.getProperty("report.path"));
-        createFolderIfNotExists(base + File.separator + ConfigReader.getProperty("screenshot.path"));
-        String videoDir=createFolderIfNotExists(base + File.separator + ConfigReader.getProperty("video.dir"));
-        deleteOldFolders(base + File.separator + ConfigReader.getProperty("screenshot.path"),
-                ConfigReader.getProperty("folder.delete.afterdays"));
-        deleteOldFolders(base + File.separator + ConfigReader.getProperty("report.path"),
-                ConfigReader.getProperty("folder.delete.afterdays"));
-
+        String base = System.getProperty("user.dir")+File.separator ;
+        createFolderIfNotExists(base +  ConfigReader.getProperty("report.path"));
+        createFolderIfNotExists(base + ConfigReader.getProperty("screenshot.path"));
+        createFolderIfNotExists(base +  ConfigReader.getProperty("video.path"));
+        deleteOldFolders(base + ConfigReader.getProperty("screenshot.path"), ConfigReader.getProperty("folder.delete.afterdays"));
+        deleteOldFolders(base + ConfigReader.getProperty("report.path"), ConfigReader.getProperty("folder.delete.afterdays"));
+        deleteOldFolders(base + ConfigReader.getProperty("video.path"), ConfigReader.getProperty("folder.delete.afterdays"));
+        DBUtils.deleteOldUsers();
         // ✅ Initialize ExtentReports per suite
         String suiteName = context.getSuite().getName();
 //        String testName = context.getName();
@@ -73,9 +79,9 @@ public class BaseTest {
                 browser = playwright.chromium().launch(options);
         }Browser.NewContextOptions contextOptions = null;
         browserTL.set(browser);
-        if (videoDir != null){
+        if (videoPath != null){
          contextOptions=
-                new Browser.NewContextOptions().setRecordVideoDir(Paths.get(videoDir))
+                new Browser.NewContextOptions().setRecordVideoDir(Paths.get(videoPath))
                         .setRecordVideoSize(1280, 720);;
         }
         BrowserContext contextPW = browser.newContext(contextOptions);
@@ -139,4 +145,5 @@ public class BaseTest {
         ExcelUtils.closeExcel();
         ReportManager.flush();
     }
+
 }

@@ -30,6 +30,7 @@ public class LoginPage extends BasePage {
     private final String loginButton = "//input[@type='submit']";
     private final String forgotPasswordLink = "//a[contains(text(),'Forgot')]";
     private final String registerUserLink = "//a[contains(text(),'Register')]";
+    private final String logoutLink = "//a[contains(@href,'logout')]";
 
     //Field Name
     private final String userNameField = "//input[@name='username']/ancestor::form/p[1]/b";
@@ -98,6 +99,8 @@ public class LoginPage extends BasePage {
                 return errorTitle;
             case "errormessage":
                 return errorMessage;
+            case "logout":
+                return logoutLink;
             default:
                 throw new IllegalArgumentException("Unknown field: " + input);
         }

@@ -1,21 +1,26 @@
-package tests;
+package tests.ui;
 
 import extentReporter.ReportManager;
 import extentReporter.ReportTestLogger;
 import listeners.RetryAnalyzer;
 import listeners.Scenario;
+import pages.InputField;
 import pages.LoginPage;
 import com.aventstack.extentreports.ExtentTest;
 import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
+import utils.DBUtils;
 import utils.ExcelUtils;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 
+//@Listeners(TestListeners.class)
 @Scenario("TS_02 Login Page Functionality Validation")
+@Test(groups="Login")
 public class LoginTest extends BaseTest {
     LoginPage loginPage;
     private String sheetName = "Login";
@@ -27,6 +32,7 @@ public class LoginTest extends BaseTest {
     private static ThreadLocal<ExtentTest> testTL = new ThreadLocal<>();
     protected String[] dependsOn;
     protected String projectName;
+    String attachmentIs;
 //    // ------------------- Class-level setup -------------------
     @BeforeClass
     public void setupBeforeClass(ITestContext context) {
@@ -34,24 +40,30 @@ public class LoginTest extends BaseTest {
         if (scenario != null) {
 //            testName = context.getCurrentXmlTest().getName();
             ReportManager.startTest(context.getName()+"-->"+scenario.value());
-            testTL.set(ReportManager.getTest());
+//            testTL.set(ReportManager.getTest());
         }
     }
 
     // ------------------- Method-level setup -------------------
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setupBeforeMethod(Method method, ITestContext context) {
+        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
 
         filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         loginPage = new LoginPage(page);
         String testDescription = method.isAnnotationPresent(Test.class)
                 ? method.getAnnotation(Test.class).description()
                 : method.getName();
+        attachmentIs=context.getCurrentXmlTest().getName()+"_"+method.getName();
 
-        if (testTL.get() == null) {
-            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+        ExtentTest parentTest = ReportManager.getParentTest(context.getName()+"-->"+scenario.value());
+
+        if (parentTest == null) {
+//            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+            ReportManager.startTest(context.getName() + " --> " + testDescription);
+            parentTest = ReportManager.getTest();
         }
-        testnode = testTL.get().createNode(testDescription);
+        testnode = parentTest.createNode(testDescription);
 //        innerTestNode = ReportTestLogger.createNode(testnode,testDescription);
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Navigating to Register Page");
 
@@ -60,8 +72,10 @@ public class LoginTest extends BaseTest {
         Assert.assertEquals(loginPage.getLoginPageTitle(), page.title(), "Page title mismatch!");
     }
     // ------------------- Test 1: Field Presence -------------------
-    @Test(priority = 1, retryAnalyzer = RetryAnalyzer.class, description = "TC01 Login page validation")
-    public void loginPageVerify() throws IOException {
+    @Test(priority = 1,retryAnalyzer = RetryAnalyzer.class, description = "TC01 Login page validation")
+    public void loginPageVerify(Method method) throws IOException {
+            String testName=method.getAnnotation(Test.class).testName();
+            String methodName=method.getName();
             innerTestNode=ReportTestLogger.createinnerNode(testnode,"verifying the Fields");
 
         try{
@@ -102,7 +116,7 @@ public class LoginTest extends BaseTest {
             ReportTestLogger.pass(innerTestNodes,"Reading Latest news Tabs and their Names with links completed successfully.");
 
             ReportTestLogger.pass(innerTestNode, "All Fields are Displayed");
-            ReportTestLogger.addScreenshotBase(testnode, loginPage.captureScreenshotBase("Login_All_Field_Test"));
+            ReportTestLogger.addScreenshotBase(testnode, loginPage.captureScreenshotBase(attachmentIs +"_Pass"));
             ReportTestLogger.pass(testnode, "Field validation has been successfully completed.");
 
         }catch (Exception e){
@@ -110,14 +124,14 @@ public class LoginTest extends BaseTest {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
 //            ReportTestLogger.addScreenshotPath(testnode, registerPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase("Login_Page_Fail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
 
     // ------------------- Test 2: Invalid Login -------------------
-    @Test(priority = 2, retryAnalyzer = RetryAnalyzer.class, description = "TC02 Login with invalid credentials")
-    public void loginWithInvalidCredentialsTest() throws IOException {
+    @Test(priority = 2, alwaysRun=true, retryAnalyzer = RetryAnalyzer.class, description = "TC02 Login with invalid credentials")
+    public void loginWithInvalidCredentialsTest(Method method) throws IOException, SQLException {
         filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         innerTestNode = ReportTestLogger.createinnerNode(testnode,"Login without writing credentials");
         ExcelUtils.openExcel(filePath);
@@ -129,37 +143,41 @@ public class LoginTest extends BaseTest {
             loginErrorFlow(innerTestNode,"", "", "Login without credentials");
 
             // -------Invalid User name credentials--------
-            userName = ExcelUtils.getCellData(readDataSheetName, "UserName") ;
+//            userName = ExcelUtils.getCellData(readDataSheetName, "UserName") ;
+            userName = DBUtils.getRandomUserName()+DBUtils.getRandomUserName();
             password = ConfigReader.getProperty("bank.password");
             loginErrorFlow(innerTestNode,userName+userName, password, "Login with invalid username");
 
 
             // -------Invalid Password credentials--------
-            userName = ExcelUtils.getCellData(readDataSheetName, "UserName");
+//            userName = ExcelUtils.getCellData(readDataSheetName, "UserName");
+            userName = DBUtils.getRandomUserName();
             password = ConfigReader.getProperty("bank.password")+"123";
             loginErrorFlow(innerTestNode,userName, password, "Login with invalid password");
 
-            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase("Login_invalid_Cred_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase(attachmentIs +"_Pass"));
             ReportTestLogger.pass(testnode, "Login with invalid credentials has been successfully completed.");
 
         }catch (Exception e){
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode,"Retrying the step");
 //            ReportTestLogger.addScreenshotPath(testnode, loginPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase("LoginTestFail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
     // ------------------- Test 3: Valid Login -------------------
-    @Test(priority = 3, retryAnalyzer = RetryAnalyzer.class, description = "TC03 Login with valid credentials")
-    public void loginWithValidCredentialsTest() throws IOException {
+    @Test(priority = 3, alwaysRun=true,retryAnalyzer = RetryAnalyzer.class, description = "TC03 Login with valid credentials")
+    public void loginWithValidCredentialsTest(Method method) throws IOException, SQLException {
+
         filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Login with Valid Credentials");
-        ExcelUtils.openExcel(filePath);
+//        ExcelUtils.openExcel(filePath);
         try {
 //            innerTestNode = ReportTestLogger.createinnerNode(testnode,"Reading username from excel and trying to login");
 
-            String userName=ExcelUtils.getCellData(readDataSheetName,"UserName");
+//            String userName=ExcelUtils.getCellData(readDataSheetName,"UserName");
+            String userName = DBUtils.getRandomUserName();
             String actualPassword = ConfigReader.getProperty("bank.password");
 
             RetryAnalyzer.retryStep(() -> loginPage.login(userName,actualPassword),testnode);
@@ -168,12 +186,13 @@ public class LoginTest extends BaseTest {
             ReportTestLogger.pass(innerTestNode, "Log in with valid credentials completed Successfully");
 
 //            ReportTestLogger.addScreenshotPath(testnode, loginPage.captureScreenshot("LoginTest"));
-            ReportTestLogger.addScreenshotBase(testnode, loginPage.captureScreenshotBase("Login_Test"));
+            ReportTestLogger.addScreenshotBase(testnode, loginPage.captureScreenshotBase(attachmentIs +"_Pass"));
+//            loginPage.clickFunctionField("logout");
         }catch (Exception e){
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode,"Retrying the step");
 //            ReportTestLogger.addScreenshotPath(testnode, loginPage.captureScreenshot("LoginTestFail"));
-            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase("LoginTestFail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase(attachmentIs +"_Fail"));
 
             throw e;
         }
@@ -198,7 +217,7 @@ public class LoginTest extends BaseTest {
         ReportTestLogger.pass(innerTestNodes, scenario + " completed successfully");
         ReportTestLogger.addScreenshotBase(innerTestNode, loginPage.captureScreenshotBase(scenario.replace(" ", "_")));
     }
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown() {
         testTL.remove();
         ReportManager.endTest();

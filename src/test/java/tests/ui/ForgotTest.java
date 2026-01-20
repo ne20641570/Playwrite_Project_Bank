@@ -1,4 +1,4 @@
-package tests;
+package tests.ui;
 
 import extentReporter.ReportManager;
 import extentReporter.ReportTestLogger;
@@ -10,24 +10,27 @@ import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
+import utils.DBUtils;
 import utils.ExcelUtils;
 import listeners.Scenario;
 import utils.TestDataGenerator;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Random;
-
+//@Listeners(TestListeners.class)
 @Scenario("TS_03 Forgot Page Functionality Validation")
+@Test(groups = "Forgot")
 public class ForgotTest extends BaseTest {
 
     private ForgotPage forgotPage;
     private String sheetName = "Register";
     private String filePath;
     private static ThreadLocal<ExtentTest> testTL = new ThreadLocal<>();
-
+    String attachmentIs;
     ExtentTest testnode;
     ExtentTest innerTestNode;
     ExtentTest innerTestNodes;
@@ -44,30 +47,27 @@ public class ForgotTest extends BaseTest {
         }
 
     // ------------------- Method-level setup -------------------
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setupBeforeMethod(Method method,ITestContext context) {
-
+        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
         forgotPage = new ForgotPage(page);
         // Read the @Test description dynamically
         String testDescription = method.isAnnotationPresent(Test.class)
                 ? method.getAnnotation(Test.class).description()
                 : method.getName();
+        attachmentIs=context.getCurrentXmlTest().getName()+"_"+method.getName();
 
-        // Create report node
-//        ReportManager.startTest(testDescription);
-//        ReportManager.startTest(context.getName()+"_"+testDescription);
-//        testnode = ReportManager.getTest();
-//        innerTestNode = ReportTestLogger.createNode(testnode,testDescription);
-//        innerTestNode = ReportTestLogger.createinnerNode(innerTestNode, "Navigating to ForgotPage Page");
-        if (testTL.get() == null) {
-            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+        ExtentTest parentTest = ReportManager.getParentTest(context.getName()+"-->"+scenario.value());
+        if (parentTest == null) {
+//            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+            ReportManager.startTest(context.getName() + " --> " + testDescription);
+            parentTest = ReportManager.getTest();
         }
-        testnode = testTL.get().createNode(testDescription);
+        testnode =parentTest.createNode(testDescription);
 
 //        testnode = ReportManager.getTest().createNode(testDescription);
 //        innerTestNode = ReportTestLogger.createNode(testnode,testDescription);
-        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Navigating to Register Page");
-
+        innerTestNode = ReportTestLogger.createinnerNode(testnode, "Navigating to Main Page");
 
         // Navigate and log
         forgotPage.navigateTo(ConfigReader.getProperty("bank.url"));
@@ -86,10 +86,8 @@ public class ForgotTest extends BaseTest {
 
     // ------------------- Test 1: Field Presence -------------------
     @Test(priority = 1,retryAnalyzer = RetryAnalyzer.class, description = "TC01 Forgot Page FieldName Verification")
-    public void forgotPageFieldValidation(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description();
+    public void forgotPageFieldValidation() throws IOException {
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Fields");
-
         try {
             for (InputField field : InputField.values()) {
                 if(field!=InputField.PhoneNumber&&field!=InputField.UserName&&field!=InputField.Password&&field!=InputField.ConfirmPassword) {
@@ -100,20 +98,19 @@ public class ForgotTest extends BaseTest {
             }
 
             ReportTestLogger.pass(innerTestNode, "All Fields are Displayed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_All_Field_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Pass"));
             ReportTestLogger.pass(testnode, "Field validation has been successfully completed.");
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Fail"));
             throw e;
         }
     }
 
     // ------------------- Test 2: Error Messages -------------------
-    @Test(priority = 2, retryAnalyzer = RetryAnalyzer.class, description = "TC02 Forgot Page Error message Verification")
-    public void forgotPageErrorFieldValidation(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description();
+    @Test(priority = 2,retryAnalyzer = RetryAnalyzer.class, description = "TC02 Forgot Page Error message Verification")
+    public void forgotPageErrorFieldValidation() throws IOException {
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Error Message for Fields");
 
         try {
@@ -125,30 +122,36 @@ public class ForgotTest extends BaseTest {
                 }
             }
             ReportTestLogger.pass(innerTestNode, "All Error Messages are Displayed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_All_Error_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Test"));
             ReportTestLogger.pass(testnode, "Error message validation completed successfully.");
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Fail"));
             throw e;
         }
     }
 
     // ------------------- Test 3: Invalid Data -------------------
-    @Test(priority = 3, retryAnalyzer = RetryAnalyzer.class,description = "TC03 Forgot functionality Verification with Invalid Data")
-    public void forgotInvalidFunctionality(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description();
+    @Test(priority = 3,alwaysRun=true, retryAnalyzer = RetryAnalyzer.class,description = "TC03 Forgot functionality Verification with Invalid Data")
+    public void forgotInvalidFunctionality() throws IOException, SQLException {
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Fetching account with invalid data");
-        boolean invalidData=true;
-        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
-        ExcelUtils.openExcel(filePath);
+//        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+//        ExcelUtils.openExcel(filePath);
         try {
-            int rowNumber = new Random().nextInt(ExcelUtils.getTotalRowCount(sheetName)) + 1;
-            Map<InputField, String> formData = buildFormData(rowNumber, invalidData);
-            for (Map.Entry<InputField, String> entry : formData.entrySet()) {
+//            int rowNumber = new Random().nextInt(ExcelUtils.getTotalRowCount(sheetName)) + 1;
+//            Map<InputField, String> formData = buildFormData(rowNumber, invalidData);
+
+            Map<InputField, String> dbData = DBUtils.getUserByUserName(String.valueOf(InputField.UserName),DBUtils.getRandomUserName());
+            for (Map.Entry<InputField, String> entry : dbData.entrySet()) {
                 if(entry.getKey()!=InputField.PhoneNumber&&entry.getKey()!=InputField.UserName&&entry.getKey()!=InputField.Password&&entry.getKey()!=InputField.ConfirmPassword) {
-                    fillFieldsAndLog(entry.getKey(), entry.getValue(), innerTestNode);
+                    String value = entry.getValue();
+                    if(entry.getKey()==InputField.SSN ) {
+                      value = entry.getValue()+"8908";
+                    }else if(entry.getKey()==InputField.State){
+                        value=entry.getValue()+"NY";
+                    }
+                    fillFieldsAndLog(entry.getKey(), value, innerTestNode);
                 }
             }
             ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Form_Filled"));
@@ -167,35 +170,39 @@ public class ForgotTest extends BaseTest {
             Assert.assertTrue(page.title().equals(forgotPage.getForgotErrorPageTitle()));
 
             ReportTestLogger.pass(innerTestNode, "Error Page validation completed successfully");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Error_PAGE_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Pass"));
             ReportTestLogger.pass(testnode, "Invalid data functionality completed successfully.");
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Fail"));
             throw e;
         }
     }
 
     // ------------------- Test 4: Valid Data -------------------
-    @Test(priority = 4, retryAnalyzer = RetryAnalyzer.class,description = "TC04 Forgot functionality Verification with Valid Data")
-    public void forgotFunctionality(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description();
+    @Test(priority = 4,alwaysRun=true, retryAnalyzer = RetryAnalyzer.class,description = "TC04 Forgot functionality Verification with Valid Data")
+    public void forgotFunctionality() throws IOException, SQLException {
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Fetching account with valid data");
         boolean invalidData=false;
-        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
-        ExcelUtils.openExcel(filePath);
+//        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+//        ExcelUtils.openExcel(filePath);
 
         try {
-            System.out.println(ExcelUtils.getTotalRowCount(sheetName));
-            int rowNumber = new Random().nextInt(ExcelUtils.getTotalRowCount(sheetName)) + 1;
+//            System.out.println(ExcelUtils.getTotalRowCount(sheetName));
+//            int rowNumber = new Random().nextInt(ExcelUtils.getTotalRowCount(sheetName)) + 1;
 //            if(rowNumber<1) rowNumber=1;
 
-            Map<InputField, String> formData = buildFormData(rowNumber, invalidData);
+//            Map<InputField, String> formData = buildFormData(rowNumber, invalidData);
+            Map<InputField, String> dbData = DBUtils.getUserByUserName(String.valueOf(InputField.UserName),DBUtils.getRandomUserName());
+            String expectedUserName = "";
 
-            for (Map.Entry<InputField, String> entry : formData.entrySet()) {
+            for (Map.Entry<InputField, String> entry : dbData.entrySet()) {
                 if(entry.getKey()!=InputField.PhoneNumber&&entry.getKey()!=InputField.UserName&&entry.getKey()!=InputField.Password&&entry.getKey()!=InputField.ConfirmPassword) {
                     fillFieldsAndLog(entry.getKey(), entry.getValue(), innerTestNode);
+                }
+                if(entry.getKey()==InputField.UserName){
+                    expectedUserName= entry.getValue();
                 }
             }
             ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Form_Filled"));
@@ -212,15 +219,16 @@ public class ForgotTest extends BaseTest {
             ReportTestLogger.info(innerTestNode, "Message: " + successMessage);
 
             String credentials = forgotPage.getMessageOnPage("successPageCredentials");
-            String expectedUserName = ExcelUtils.getCellDataAtRow(sheetName, rowNumber, "UserName");
+//            String expectedUserName = ExcelUtils.getCellDataAtRow(sheetName, rowNumber, "UserName");
+//            String expectedUserName = DBUtils.getRandomUserName();
             String expectedPassword = ConfigReader.getProperty("bank.password");
-
+            System.out.println("exp: "+credentials+"\nact: "+expectedUserName);
             Assert.assertTrue(credentials.contains(expectedUserName));
             Assert.assertTrue(credentials.contains(expectedPassword));
 
             ReportTestLogger.info(innerTestNode, "Credentials displayed: " + credentials);
             ReportTestLogger.pass(innerTestNode, "Success Page validation completed successfully");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Success_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Pass"));
 
             forgotPage.clickFunctionField("LogoutLink");
             ReportTestLogger.pass(testnode, "Forgot functionality with valid data completed successfully");
@@ -228,25 +236,25 @@ public class ForgotTest extends BaseTest {
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase("Forgot_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, forgotPage.captureScreenshotBase(attachmentIs+"_Fail"));
             throw e;
         }
     }
 
-    private Map<InputField, String> buildFormData(int row, boolean invalidData) {
-        Map<InputField, String> data = new LinkedHashMap<>();
-        data.put(InputField.FirstName, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.FirstName.name()));
-        data.put(InputField.LastName, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.LastName.name()));
-        data.put(InputField.Address, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.Address.name()));
-        data.put(InputField.City, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.City.name()) +
-                (invalidData ? TestDataGenerator.randomCity() : ""));
-        data.put(InputField.State, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.State.name()));
-        data.put(InputField.ZipCode, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.ZipCode.name()) +
-                (invalidData ? TestDataGenerator.randomZipCode().substring(0, 3) : ""));
-        data.put(InputField.SSN, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.SSN.name()) +
-                (invalidData ? TestDataGenerator.randomSSN().substring(0, 3) : ""));
-        return data;
-    }
+//    private Map<InputField, String> buildFormData(int row, boolean invalidData) {
+//        Map<InputField, String> data = new LinkedHashMap<>();
+//        data.put(InputField.FirstName, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.FirstName.name()));
+//        data.put(InputField.LastName, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.LastName.name()));
+//        data.put(InputField.Address, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.Address.name()));
+//        data.put(InputField.City, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.City.name()) +
+//                (invalidData ? TestDataGenerator.randomCity() : ""));
+//        data.put(InputField.State, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.State.name()));
+//        data.put(InputField.ZipCode, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.ZipCode.name()) +
+//                (invalidData ? TestDataGenerator.randomZipCode().substring(0, 3) : ""));
+//        data.put(InputField.SSN, ExcelUtils.getCellDataAtRow(sheetName, row, InputField.SSN.name()) +
+//                (invalidData ? TestDataGenerator.randomSSN().substring(0, 3) : ""));
+//        return data;
+//    }
 
     private void fillFieldsAndLog(InputField field,String value, ExtentTest innerTestNode) throws IOException {
         if (shouldValidateField(field)) {
@@ -260,7 +268,7 @@ public class ForgotTest extends BaseTest {
                 field != InputField.Password &&
                 field != InputField.ConfirmPassword;
     }
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown() {
         testTL.remove();
         ReportManager.endTest();

@@ -1,0 +1,18 @@
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+<suite name="Automation Playwright Suite" parallel="tests" >
+
+    <test name="Chromium Tests" parallel="classes">
+        <parameter name="browser" value="chromium"/>
+        <packages>
+            <package name="tests.ui"/>
+        </packages>
+    </test>
+
+    <!-- Run tests on WebKit -->
+    <test name="WebKit Tests" parallel="classes">
+        <parameter name="browser" value="webkit"/>
+        <packages>
+            <package name="tests.ui"/>
+        </packages>
+    </test>
+</suite>

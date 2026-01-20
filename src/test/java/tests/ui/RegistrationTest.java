@@ -1,4 +1,4 @@
-package tests;
+package tests.ui;
 
 import extentReporter.ReportManager;
 import extentReporter.ReportTestLogger;
@@ -11,13 +11,17 @@ import config.ConfigReader;
 import org.testng.Assert;
 import org.testng.ITestContext;
 import org.testng.annotations.*;
+import utils.DBUtils;
 import utils.ExcelUtils;
 import listeners.Scenario;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.Map;
-
+//@Listeners(TestListeners.class)
 @Scenario("TS_01 Registration Page Functionality Validation")
+@Test(groups = "Registration")
 public class RegistrationTest extends BaseTest {
     private static ThreadLocal<ExtentTest> testTL = new ThreadLocal<>();
     private RegisterPage registerPage;
@@ -26,6 +30,7 @@ public class RegistrationTest extends BaseTest {
     ExtentTest testnode;
     ExtentTest innerTestNode;
     ExtentTest innerTestNodes;
+    String attachmentIs;
 
     // ------------------- Class-level setup for report -------------------
     @BeforeClass
@@ -39,8 +44,10 @@ public class RegistrationTest extends BaseTest {
     }
 
     // ------------------- Method-level setup -------------------
-    @BeforeMethod
+    @BeforeMethod(alwaysRun = true)
     public void setupBeforeMethod(Method method,ITestContext context) throws IOException {
+        Scenario scenario = this.getClass().getAnnotation(Scenario.class);
+
         registerPage = new RegisterPage(page);
 
         // Read the @Test description dynamically
@@ -48,11 +55,16 @@ public class RegistrationTest extends BaseTest {
                 ? method.getAnnotation(Test.class).description()
                 : method.getName();
 
+        attachmentIs=context.getCurrentXmlTest().getName()+"_"+method.getName();
+
         // Create report nodes
-        if (testTL.get() == null) {
-            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+        ExtentTest parentTest = ReportManager.getParentTest(context.getName()+"-->"+scenario.value());
+        if (parentTest == null) {
+//            throw new RuntimeException("ReportManager.getTest() is null in @BeforeMethod");
+            ReportManager.startTest(context.getName() + " --> " + testDescription);
+            parentTest = ReportManager.getTest();
         }
-        testnode = testTL.get().createNode(testDescription);
+        testnode =parentTest.createNode(testDescription);
 //        testnode = ReportManager.getTest().createNode(testDescription);
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Navigating to Register Page");
 
@@ -74,7 +86,7 @@ public class RegistrationTest extends BaseTest {
     // ------------------- Test 1: Field Presence -------------------
     @Test(priority = 1, description = "TC01 Registration Page FieldName Verification")
     public void registrationPageValidation(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description(); // Dynamic description
+        String testName = method.getAnnotation(Test.class).testName(); // Dynamic description
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Fields");
 
         try {
@@ -85,13 +97,13 @@ public class RegistrationTest extends BaseTest {
             }
 
             ReportTestLogger.pass(innerTestNode, "All Fields are Displayed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_All_Field_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase(attachmentIs +"_Pass"));
             ReportTestLogger.pass(testnode, "Field validation has been successfully completed.");
 
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
@@ -99,7 +111,7 @@ public class RegistrationTest extends BaseTest {
     // ------------------- Test 2: Error Messages -------------------
     @Test(priority = 2, description = "TC02 Registration Page Error message Verification")
     public void errorMessageValidation(Method method) throws Exception {
-        String testDescription = method.getAnnotation(Test.class).description();
+        String testName = method.getAnnotation(Test.class).testName();
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Verifying the Error Message for Fields");
 
         try {
@@ -112,13 +124,13 @@ public class RegistrationTest extends BaseTest {
             }
 
             ReportTestLogger.pass(innerTestNode, "All Error Messages are Displayed");
-            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_All_Error_Message_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase(attachmentIs +"_Pass"));
             ReportTestLogger.pass(testnode, "Error message validation completed successfully.");
 
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
@@ -126,9 +138,10 @@ public class RegistrationTest extends BaseTest {
     // ------------------- Test 3: Confirm Password Error -------------------
     @Test(priority = 3, retryAnalyzer = RetryAnalyzer.class, description = "TC03 Registration Page Confirm Password Error message Verification")
     public void passwordErrorMessageValidation(Method method) throws Exception {
+        String testName=method.getAnnotation(Test.class).testName();
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Writing input to form.");
         filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
-        ExcelUtils.openExcel(filePath);
+//        ExcelUtils.openExcel(filePath);
 
         try {
             // Get test data
@@ -155,43 +168,52 @@ public class RegistrationTest extends BaseTest {
             ReportTestLogger.info(innerTestNode, "Confirm Password Error Message is Displayed ");
             ReportTestLogger.pass(innerTestNode, errorMessage);
 
-            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_Confirm_Error_Message_Test"));
+            ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase(attachmentIs +"_Pass"));
             ReportTestLogger.pass(testnode, "Password mismatch validation completed successfully.");
             ExcelUtils.closeExcel();
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
 
     // ------------------- Test 4: Successful Registration -------------------
-    @Test(priority = 4, retryAnalyzer = RetryAnalyzer.class, description = "TC04 Registration with Valid data")
-    public void registrationWithValidData(Method method) throws IOException {
-        String testDescription = method.getAnnotation(Test.class).description();
+    @Test(priority = 4, groups = "registrationComplete",retryAnalyzer = RetryAnalyzer.class, description = "TC04 Registration with Valid data")
+    public void registrationWithValidData(Method method) throws Exception{
+        String testName = method.getAnnotation(Test.class).testName();
         innerTestNode = ReportTestLogger.createinnerNode(testnode, "Entered required details in the registration form");
-        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
-        ExcelUtils.openExcel(filePath);
+//        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+//        ExcelUtils.openExcel(filePath);
 
         try {
             // Generate test data
-            Map<InputField, String> fieldsToFill = RegistrationFormData.getFormData("", "");
+//            Map<InputField, String> fieldsToFill = RegistrationFormData.getFormData("", "");
+//            Map<InputField,String> dbDataIs = new HashMap<>();
+            Map<InputField,String> dbDataIs = RegistrationFormData.getFormData("", "");
 
             // Fill all fields
-            for (Map.Entry<InputField, String> entry : fieldsToFill.entrySet()) {
+            for (Map.Entry<InputField, String> entry : dbDataIs.entrySet()) {
                 fillFieldAndLogForRegister(entry.getKey(), entry.getValue(), innerTestNode);
+                if(entry.getKey()!=InputField.Password&&entry.getKey()!=InputField.ConfirmPassword){
+                    dbDataIs.put(entry.getKey(),entry.getValue());
+                }
             }
+            DBUtils.insertRegistration(dbDataIs);
+//            Map<InputField, String> dbData = DBUtils.getUserByUserName(String.valueOf(InputField.UserName),fieldsToFill.get(InputField.UserName));
+//            System.out.println(dbData.get(InputField.UserName));
 
             ReportTestLogger.addScreenshotBase(innerTestNode, registerPage.captureScreenshotBase("Registration_Test"));
             RetryAnalyzer.retryStep(() -> registerPage.clickFunctionField("RegisterButton"), testnode);
 
             // Verify Welcome Page
-            innerTestNodes = ReportTestLogger.createinnerNode(testnode, "Verifying Welcome Page | Test: " + testDescription);
+            innerTestNodes = ReportTestLogger.createinnerNode(testnode, "Verifying Welcome Page");
             innerTestNode = ReportTestLogger.createinnerNode(innerTestNodes, "Welcome Page Validation");
 
             String expectedTitle = registerPage.getMessageOnPage("WelcomeTitle");
-            String userName = fieldsToFill.get(InputField.UserName);
+//            String userName = fieldsToFill.get(InputField.UserName);
+            String userName = dbDataIs.get(InputField.UserName);
             Assert.assertTrue(expectedTitle.toLowerCase().contains(userName.toLowerCase()));
 
             ReportTestLogger.info(innerTestNode, "Title: " + expectedTitle);
@@ -199,15 +221,15 @@ public class RegistrationTest extends BaseTest {
             ReportTestLogger.pass(innerTestNode, "Title is matched");
 
             ReportTestLogger.pass(innerTestNodes, "Welcome Page validation completed successfully");
-            ReportTestLogger.addScreenshotBase(innerTestNodes, registerPage.captureScreenshotBase("Registration_Welcome_Page"));
+            ReportTestLogger.addScreenshotBase(innerTestNodes, registerPage.captureScreenshotBase(attachmentIs +"_Pass"));
 
             ReportTestLogger.pass(testnode, "User registration form completed successfully");
-            ExcelUtils.fileOutPut();
+//            ExcelUtils.fileOutPut();
 
         } catch (Exception | AssertionError e) {
             ReportTestLogger.info(innerTestNode, e.getMessage());
             ReportTestLogger.fail(innerTestNode, "Failed");
-            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase("Registration_Test_Fail"));
+            ReportTestLogger.addScreenshotBase(testnode, registerPage.captureScreenshotBase(attachmentIs +"_Fail"));
             throw e;
         }
     }
@@ -219,13 +241,14 @@ public class RegistrationTest extends BaseTest {
         if(field==InputField.Password || field == InputField.ConfirmPassword) {
            value = "**********";
         }
-        ExcelUtils.writeResult(sheetName, field.name(), value); // Write to Excel
+//        ExcelUtils.writeResult(sheetName, field.name(), value); // Write to Excel
         ReportTestLogger.info(innerTestNode, field.name() + ": " + value); // Log it
     }
 
-    @AfterClass
+    @AfterClass(alwaysRun = true)
     public void tearDown() {
         testTL.remove();
         ReportManager.endTest();
     }
+
 }

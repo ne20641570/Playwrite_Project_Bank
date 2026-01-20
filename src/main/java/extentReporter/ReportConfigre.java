@@ -19,13 +19,13 @@ public class ReportConfigre {
                 + File.separator + reportName + ".html";
 
         ExtentSparkReporter spark = new ExtentSparkReporter(reportFile);
-        spark.config().setReportName("Playwright Automation Report");
-        spark.config().setDocumentTitle("Playwright + TestNG");
+        spark.config().setReportName("Playwright Report");
+        spark.config().setDocumentTitle(reportName);
 
         ExtentReports extent = new ExtentReports();
         extent.attachReporter(spark);
 
-        extent.setSystemInfo("Framework", "Playwright + TestNG");
+        extent.setSystemInfo("Framework", "TestNG");
         extent.setSystemInfo("OS", System.getProperty("os.name"));
         extent.setSystemInfo("Author", "Neelanjana K");
 

@@ -73,7 +73,7 @@ public class PlaywrightFactory {
             if (video == null) return null;
 
             Path tempPath = video.path();
-            String videoDir = System.getProperty("user.dir")+File.separator+ConfigReader.getProperty("video.dir")+File.separator;
+            String videoDir = System.getProperty("user.dir")+File.separator+ConfigReader.getProperty("video.path")+File.separator;
             Path finalPath = Paths.get(videoDir + createFolderIfNotExists(videoDir)+File.separator+ ".webm");
 
             // Ensure video exists before moving

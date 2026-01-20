@@ -1,5 +1,7 @@
 package pages;
 
+import api.data.generators.RandomDataGenerator;
+import com.aventstack.extentreports.model.Test;
 import config.ConfigReader;
 import utils.TestDataGenerator;
 import java.util.LinkedHashMap;
@@ -20,11 +22,18 @@ public class RegistrationFormData {
         formData.put(InputField.City, TestDataGenerator.randomCity());
         formData.put(InputField.State, TestDataGenerator.randomState());
         formData.put(InputField.ZipCode, TestDataGenerator.randomZipCode());
+        formData.put(InputField.PhoneNumber, TestDataGenerator.randomPhoneNumber());
         formData.put(InputField.SSN, TestDataGenerator.randomSSN());
-        formData.put(InputField.UserName, TestDataGenerator.randomUsernameWithFullName(firstName,lastName));
+        formData.put(InputField.UserName, TestDataGenerator.randomUsernameWithFullName(firstName, lastName));
         formData.put(InputField.Password, ConfigReader.getProperty("bank.password"));
         formData.put(InputField.ConfirmPassword, ConfigReader.getProperty("bank.password"));
 
+        return formData;
+    }
+
+    public static Map<InputField, String> getPhoneNumberData() {
+        Map<InputField, String> formData = new LinkedHashMap<>();
+        formData.put(InputField.PhoneNumber, RandomDataGenerator.randomPhoneNumber());
         return formData;
     }
 }
