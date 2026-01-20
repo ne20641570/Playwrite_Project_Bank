@@ -177,14 +177,23 @@ Playwright_Project_Bank
 
 ---
 
-## 7. Excel-Based Test Data Management
+## 7. Test Data Management
 
+## 7.1 Excel Data Management
 - Test data for **User Registration** is stored in Excel
 - Excel utilities support:
     - Read/write operations
     - Dynamic data updates
 - Registered user details are reused for **Login** and **Forgot Password** tests
 
+
+## 7.2 Data Base Test Data Management
+
+- Test data for **User Registration** is stored in Database
+- Database utilities support:
+    - Read/write operations
+    - Dynamic data updates
+- Registered user details are reused for **Login** and **Forgot Password** tests
 ---
 
 ## 8. Known Application Limitation
