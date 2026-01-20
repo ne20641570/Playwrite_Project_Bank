@@ -36,7 +36,7 @@ public class BaseApiTest {
         String suiteName = context.getSuite().getName();
         String base = System.getProperty("user.dir")+ File.separator ;
         createFolderIfNotExists(base +  ConfigReader.getProperty("report.path"));
-        ReportManager.initReport(suiteName+"_API");
+        ReportManager.initReport(suiteName);
     }
 
     @BeforeClass

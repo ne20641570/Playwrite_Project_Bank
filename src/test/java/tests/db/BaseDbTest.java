@@ -24,7 +24,7 @@ public class BaseDbTest {
         String base = System.getProperty("user.dir") + File.separator;
         createFolderIfNotExists(base + ConfigReader.getProperty("report.path"));
 
-        ReportManager.initReport(suiteName + "_DB");
+        ReportManager.initReport(suiteName);
     }
 
     @BeforeClass

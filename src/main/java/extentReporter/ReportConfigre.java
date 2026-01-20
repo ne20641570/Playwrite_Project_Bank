@@ -14,7 +14,6 @@ public class ReportConfigre {
 
         String basePath = System.getProperty("user.dir")
                 + File.separator + ConfigReader.getProperty("report.path");
-
         String reportFile = createFolderIfNotExists(basePath)
                 + File.separator + reportName + ".html";
 

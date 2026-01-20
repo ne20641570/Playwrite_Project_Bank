@@ -22,6 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import static db.client.DbClient.getConnection;
 
 @Scenario("Users Table CRUD Operations")
+@Test(groups = "UserDBTest")
 public class UserDbTest extends BaseDbTest {
 
     private String userName;
