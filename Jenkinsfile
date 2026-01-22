@@ -46,25 +46,42 @@ pipeline {
                 }
             }
         }
+
+        stage('Debug Report Folder') {
+            steps {
+                // Optional: List folders to check
+                sh 'ls -l reports/extentReports/'
+            }
+        }
     }
 
     post {
         always {
-            // Publish Surefire TestNG reports
+            // Publish TestNG results
             junit '**/target/surefire-reports/*.xml'
 
-            // Publish Extent Reports (latest dated folder)
             script {
-                def reportDir = sh(script: "ls -dt reports/extentReports/*/ | head -1", returnStdout: true).trim()
-                echo "Latest Extent Report folder: ${reportDir}"
+                // Get the latest dated report folder
+                def latestReport = sh(
+                    script: "ls -dt reports/extentReports/* | head -1",
+                    returnStdout: true
+                ).trim()
+
+                echo "Latest Extent Report folder: ${latestReport}"
+
+                // HTML Publisher
                 publishHTML(target: [
                     reportName: 'Extent Report',
-                    reportDir: reportDir,
+                    reportDir: latestReport,
                     reportFiles: 'index.html',
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
                     allowMissing: false
                 ])
+
+                // Print clickable URL in console
+                def jenkinsUrl = "${env.BUILD_URL}HTML_20Report/"
+                echo "Click the link to open Extent Report: ${jenkinsUrl}"
             }
         }
     }
