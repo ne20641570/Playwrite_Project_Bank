@@ -27,20 +27,25 @@ pipeline {
             steps {
                 script {
                     def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+
                     if (params.TEST_METHOD?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_METHOD}"
                     } else if (params.TEST_CLASS?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_CLASS}"
                     }
+
                     if (params.GROUPS?.trim()) {
                         mvnCmd += " -Dgroups=${params.GROUPS}"
                     }
+
                     if (params.BROWSER?.trim()) {
                         mvnCmd += " -Dbrowser=${params.BROWSER}"
                     }
+
                     if (params.THREAD_COUNT?.trim()) {
                         mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
                     }
+
                     echo "Running command: ${mvnCmd}"
                     sh mvnCmd
                 }
@@ -49,40 +54,14 @@ pipeline {
 
         stage('Debug Report Folder') {
             steps {
-                // Optional: List folders to check
-                sh 'ls -l reports/extentReports/'
-            }
-        }
-    }
+                script {
+                    def reportExists = sh(
+                        script: "if [ -d reports/extentReports ]; then echo 'true'; else echo 'false'; fi",
+                        returnStdout: true
+                    ).trim()
 
-    post {
-        always {
-            // Publish TestNG results
-            junit '**/target/surefire-reports/*.xml'
-
-            script {
-                // Get the latest dated report folder
-                def latestReport = sh(
-                    script: "ls -dt reports/extentReports/* | head -1",
-                    returnStdout: true
-                ).trim()
-
-                echo "Latest Extent Report folder: ${latestReport}"
-
-                // HTML Publisher
-                publishHTML(target: [
-                    reportName: 'Extent Report',
-                    reportDir: latestReport,
-                    reportFiles: 'index.html',
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: false
-                ])
-
-                // Print clickable URL in console
-                def jenkinsUrl = "${env.BUILD_URL}HTML_20Report/"
-                echo "Click the link to open Extent Report: ${jenkinsUrl}"
-            }
-        }
-    }
-}
+                    if (reportExists == 'true') {
+                        echo "Report folder exists. Listing contents:"
+                        sh 'ls -l reports/extentReports/'
+                        sh 'ls -l reports/extentReports/*'
+                    } else {
