@@ -18,7 +18,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main',
-                    url: 'https://github.com/USERNAME/REPO.git',
+                    url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git',
                     credentialsId: 'github-creds'
             }
         }
