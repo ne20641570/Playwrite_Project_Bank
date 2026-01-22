@@ -6,12 +6,12 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml','testng-db.xml'], description: 'Select TestNG suite XML')
-        string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class (optional, e.g., RegistrationTest)')
-        string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method from a class (optional, e.g., RegistrationTest#registrationPageValidation)')
-        string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups (optional, e.g., Registration, Login)')
-        choice(name: 'BROWSER', choices: ['chromium', 'webkit', ''], description: 'Override browser for UI tests (optional)')
-        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads for parallel execution (optional)')
+        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml'], description: 'Select TestNG suite XML')
+        string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
+        string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
+        string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
+        choice(name: 'BROWSER', choices: ['chromium', 'webkit', 'firefox', ''], description: 'Override browser')
+        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads for parallel execution')
     }
 
     stages {
@@ -26,28 +26,21 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Base Maven command
                     def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
-
-                    // Add optional parameters
                     if (params.TEST_METHOD?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_METHOD}"
                     } else if (params.TEST_CLASS?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_CLASS}"
                     }
-
                     if (params.GROUPS?.trim()) {
                         mvnCmd += " -Dgroups=${params.GROUPS}"
                     }
-
                     if (params.BROWSER?.trim()) {
                         mvnCmd += " -Dbrowser=${params.BROWSER}"
                     }
-
                     if (params.THREAD_COUNT?.trim()) {
                         mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
                     }
-
                     echo "Running command: ${mvnCmd}"
                     sh mvnCmd
                 }
@@ -57,8 +50,22 @@ pipeline {
 
     post {
         always {
-            // Assuming Maven Surefire / Failsafe reports
+            // Publish Surefire TestNG reports
             junit '**/target/surefire-reports/*.xml'
+
+            // Publish Extent Reports (latest dated folder)
+            script {
+                def reportDir = sh(script: "ls -dt reports/extentReports/*/ | head -1", returnStdout: true).trim()
+                echo "Latest Extent Report folder: ${reportDir}"
+                publishHTML(target: [
+                    reportName: 'Extent Report',
+                    reportDir: reportDir,
+                    reportFiles: 'index.html',
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: false
+                ])
+            }
         }
     }
 }
