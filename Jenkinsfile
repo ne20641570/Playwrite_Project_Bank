@@ -29,7 +29,7 @@ pipeline {
                 sh 'mvn -version'
 
                 script {
-                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=src/test/java/tests/${params.SUITE_FILE}"
+                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
                     if (params.TEST_METHOD?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_METHOD}"
