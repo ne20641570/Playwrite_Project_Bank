@@ -1,16 +1,16 @@
 pipeline {
-    agent any
+    agent { label 'mac' }  // <-- Runs on Jenkins node labeled 'mac'
 
     tools {
-        maven 'Maven-3.9'
+        maven 'Maven-3.9'   // Make sure Maven 3.9 is configured in Jenkins global tools on Mac node
     }
 
     parameters {
-        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml','testng-db.xml'], description: 'Select TestNG suite XML')
+        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml', 'testng-db.xml'], description: 'Select TestNG suite XML')
         string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
         string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
         string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
-        choice(name: 'BROWSER', choices: ['chromium', 'webkit', 'firefox'], description: 'Override browser')
+        choice(name: 'BROWSER', choices: ['chromium', 'webkit'], description: 'Override browser')
         string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
     }
 
@@ -58,9 +58,9 @@ pipeline {
         }
     }
 
-    script {
-        def reportDate = new Date().format('yyyy-MM-dd')
-        env.REPORT_DIR = "reports/extentReports/${reportDate}"
+    // Set REPORT_DIR environment variable dynamically before post
+    environment {
+        REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
     }
 
     post {
@@ -77,5 +77,4 @@ pipeline {
             archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
         }
     }
-
 }
