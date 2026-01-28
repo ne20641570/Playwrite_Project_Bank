@@ -1,8 +1,8 @@
 pipeline {
-    agent { label 'mac' }  // <-- Runs on Jenkins node labeled 'mac'
+    agent { label 'mac' }  // Runs on Jenkins node labeled 'mac'
 
     tools {
-        maven 'Maven-3.9'   // Make sure Maven 3.9 is configured in Jenkins global tools on Mac node
+        maven 'Maven-3.9'
     }
 
     parameters {
@@ -12,6 +12,10 @@ pipeline {
         string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
         choice(name: 'BROWSER', choices: ['chromium', 'webkit'], description: 'Override browser')
         string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
+    }
+
+    environment {
+        REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
     }
 
     stages {
@@ -26,7 +30,14 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'mvn -version'
+                sh '''
+                    echo "Preparing shell environment..."
+                    touch ~/.bash_profile
+                    source ~/.bash_profile
+
+                    echo "Maven version:"
+                    mvn -version
+                '''
 
                 script {
                     def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
@@ -58,11 +69,6 @@ pipeline {
         }
     }
 
-    // Set REPORT_DIR environment variable dynamically before post
-    environment {
-        REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
-    }
-
     post {
         always {
             publishHTML(target: [
@@ -75,6 +81,9 @@ pipeline {
             ])
 
             archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
+
+            echo "Extent Report URL:"
+            echo "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
         }
     }
 }
