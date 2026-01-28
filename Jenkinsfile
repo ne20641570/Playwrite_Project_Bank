@@ -6,10 +6,10 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml'], description: 'Select TestNG suite XML')
+        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml','testng-db.xml'], description: 'Select TestNG suite XML')
+        string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
         string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
         string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
-        string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
         choice(name: 'BROWSER', choices: ['chromium', 'webkit', 'firefox'], description: 'Override browser')
         string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
     }
@@ -31,9 +31,7 @@ pipeline {
                 script {
                     def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
-                    if (params.TEST_METHOD?.trim()) {
-                        mvnCmd += " -Dtest=${params.TEST_METHOD}"
-                    } else if (params.TEST_CLASS?.trim()) {
+                    if (params.TEST_CLASS?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_CLASS}"
                     }
 
@@ -60,9 +58,24 @@ pipeline {
         }
     }
 
+    script {
+        def reportDate = new Date().format('yyyy-MM-dd')
+        env.REPORT_DIR = "reports/extentReports/${reportDate}"
+    }
+
     post {
         always {
-            sh 'ls -R target || true'
+            publishHTML(target: [
+                reportName: 'Extent Report',
+                reportDir: env.REPORT_DIR,
+                reportFiles: 'index.html',
+                keepAll: true,
+                alwaysLinkToLastBuild: true,
+                allowMissing: false
+            ])
+
+            archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
         }
     }
+
 }
