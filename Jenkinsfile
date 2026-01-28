@@ -10,11 +10,12 @@ pipeline {
         string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
         string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
         string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
-        choice(name: 'BROWSER', choices: ['chromium', 'webkit', 'firefox', ''], description: 'Override browser')
-        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads for parallel execution')
+        choice(name: 'BROWSER', choices: ['chromium', 'webkit', 'firefox'], description: 'Override browser')
+        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
     }
 
     stages {
+
         stage('Checkout') {
             steps {
                 git branch: 'main',
@@ -25,8 +26,10 @@ pipeline {
 
         stage('Run Tests') {
             steps {
+                sh 'mvn -version'
+
                 script {
-                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=src/test/java/tests/${params.SUITE_FILE}"
 
                     if (params.TEST_METHOD?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_METHOD}"
@@ -46,22 +49,20 @@ pipeline {
                         mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
                     }
 
-                    echo "Running command: ${mvnCmd}"
+                    echo "================================="
+                    echo "Running command:"
+                    echo mvnCmd
+                    echo "================================="
+
                     sh mvnCmd
                 }
             }
         }
+    }
 
-        stage('Debug Report Folder') {
-            steps {
-                script {
-                    def reportExists = sh(
-                        script: "if [ -d reports/extentReports ]; then echo 'true'; else echo 'false'; fi",
-                        returnStdout: true
-                    ).trim()
-
-                    if (reportExists == 'true') {
-                        echo "Report folder exists. Listing contents:"
-                        sh 'ls -l reports/extentReports/'
-                        sh 'ls -l reports/extentReports/*'
-                    } else {
+    post {
+        always {
+            sh 'ls -R target || true'
+        }
+    }
+}
