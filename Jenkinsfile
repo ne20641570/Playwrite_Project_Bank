@@ -101,7 +101,7 @@ pipeline {
 	post {
 		always {
 			publishHTML(target: [
-				reportName: "Extent Report - ${params.SUITE_FILE}",
+				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
 				reportFiles: "index.html",
 				keepAll: true,
@@ -113,7 +113,7 @@ pipeline {
 			allowEmptyArchive: true
 
 			echo "Extent Report URL:"
-			echo "${env.BUILD_URL}Extent_20Report_20-_20${params.SUITE_FILE}/"
+			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
 		}
 	}
 }
