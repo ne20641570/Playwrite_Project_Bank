@@ -1,10 +1,6 @@
 pipeline {
 	agent any
-
-	tools {
-		// Use Maven installed in Jenkins global tool configuration
-		maven 'Maven-3.9'
-	}
+	tools { maven 'Maven-3.9' }
 
 	parameters {
 		choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml', 'testng-db.xml'], description: 'Select TestNG suite XML')
@@ -17,43 +13,24 @@ pipeline {
 
 	environment {
 		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
+		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
 	stages {
-
-		stage('Setup Maven') {
+		stage('Checkout') {
 			steps {
-				echo 'Checking Maven installation...'
-				script {
-					def mvnExists = sh(script: 'which mvn || true', returnStdout: true).trim()
-					if (!mvnExists) {
-						echo 'Maven not found. Installing via Homebrew...'
-						sh '''
-                            # Install Homebrew if missing
-                            if ! command -v brew >/dev/null 2>&1; then
-                                /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-                            fi
-                            brew update
-                            brew install maven
-                        '''
-					} else {
-						echo "Maven found at ${mvnExists}"
-					}
-				}
+				git branch: 'main', url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git', credentialsId: 'github-creds'
 			}
 		}
 
-		stage('Checkout') {
+		stage('Build') {
 			steps {
-				echo "Checking out source code from GitHub..."
-				git branch: 'main', url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git', credentialsId: 'github-creds'
+				sh 'mvn clean compile'
 			}
 		}
 
 		stage('Run Tests') {
 			steps {
-				echo "Preparing environment and running tests..."
-				sh 'touch ~/.bash_profile; source ~/.bash_profile; mvn -version'
 				script {
 					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 					if (params.GROUPS?.trim()) { mvnCmd += " -Dgroups=${params.GROUPS}" }
@@ -63,28 +40,41 @@ pipeline {
 					if (params.THREAD_COUNT?.trim()) { mvnCmd += " -Dthread.count=${params.THREAD_COUNT}" }
 
 					echo "================================="
-					echo "Running command:"
-					echo mvnCmd
+					echo "Running command: ${mvnCmd}"
 					echo "================================="
-
 					sh mvnCmd
 				}
+			}
+		}
+
+		stage('Archive Reports') {
+			steps {
+				publishHTML(target: [
+					reportName: 'Extent Report',
+					reportDir: env.REPORT_DIR,
+					reportFiles: 'index.html',
+					keepAll: true,
+					alwaysLinkToLastBuild: true,
+					allowMissing: false
+				])
+				archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
 			}
 		}
 	}
 
 	post {
 		always {
-			publishHTML(target: [
-				reportName: 'Extent Report',
-				reportDir: env.REPORT_DIR,
-				reportFiles: 'index.html',
-				keepAll: true,
-				alwaysLinkToLastBuild: true,
-				allowMissing: false
-			])
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
-			echo "Extent Report URL: ${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
+			script {
+				def reportUrl = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
+				emailext(
+					subject: "Jenkins Build: ${currentBuild.fullDisplayName}",
+					body: """<p>Build Status: ${currentBuild.currentResult}</p>
+                             <p>Test Suite: ${params.SUITE_FILE}</p>
+                             <p>Extent Report: <a href='${reportUrl}'>Click Here</a></p>""",
+					to: env.EMAIL_RECIPIENTS,
+					mimeType: 'text/html'
+				)
+			}
 		}
 	}
 }
