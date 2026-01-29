@@ -113,7 +113,7 @@ pipeline {
 			//allowEmptyArchive: true
 
 			echo "Extent Report URL:"
-			echo "${env.BUILD_URL}ddExtent_Report_${params.SUITE_FILE}/"
+			echo "${env.BUILD_URL}Extent_Report_dd${params.SUITE_FILE}/"
 		}
 	}
 }
