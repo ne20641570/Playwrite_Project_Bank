@@ -1,9 +1,9 @@
 pipeline {
 	agent any
 	stages {
-		stage('Now It Works') {
+		stage('Test Stage') {
 			steps {
-				echo 'Jenkins is finally executing stages'
+				echo 'Jenkinsfile is executing now!'
 			}
 		}
 	}
