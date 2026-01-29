@@ -25,7 +25,7 @@ pipeline {
 		echo "Defining Pipeline Stages..."
         stage('Checkout') {
             steps {
-				echo "Checking out source code from GitHub..."'
+				echo "Checking out source code from GitHub..."
                 git branch: 'main',
                     url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git',
                     credentialsId: 'github-creds'
