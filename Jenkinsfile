@@ -1,4 +1,5 @@
 pipeline {
+	echo "Starting Pipeline Execution..."
     agent { label 'mac' }  // Runs on Jenkins node labeled 'mac'
 
     tools {
@@ -6,6 +7,7 @@ pipeline {
     }
 
     parameters {
+		echo "Defining Pipeline Parameters..."
         choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml', 'testng-db.xml'], description: 'Select TestNG suite XML')
         string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
         string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
@@ -15,13 +17,15 @@ pipeline {
     }
 
     environment {
+		echo "Setting Environment Variables..."
         REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
     }
 
     stages {
-
+		echo "Defining Pipeline Stages..."
         stage('Checkout') {
             steps {
+				echo "Checking out source code from GitHub..."'
                 git branch: 'main',
                     url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git',
                     credentialsId: 'github-creds'
@@ -32,7 +36,7 @@ pipeline {
             steps {
                 sh '''
                     echo "Preparing shell environment..."
-                    touch ~/.bash_profile
+                    touch .bash_profile
                     source ~/.bash_profile
 
                     echo "Maven version:"
