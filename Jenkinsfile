@@ -1,8 +1,9 @@
 pipeline {
-	agent any
+	agent any  // Runs on any available Jenkins node
 
 	tools {
-		maven 'Maven-3.9'
+		maven 'Maven-3.9'  // Make sure Maven is installed and configured in Jenkins
+		jdk 'JDK-17'       // Make sure your Java version matches Playwright requirements
 	}
 
 	parameters {
@@ -28,7 +29,7 @@ pipeline {
 			}
 		}
 
-		stage('Run Tests') {
+		stage('Run Playwright Tests') {
 			steps {
 				script {
 					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
