@@ -2,9 +2,9 @@ pipeline {
 	agent any
 
 	stages {
-		stage('Sanity Check') {
+		stage('Proof') {
 			steps {
-				echo 'Jenkinsfile is being read and stages are executing'
+				echo 'Stage is executing successfully'
 			}
 		}
 	}
