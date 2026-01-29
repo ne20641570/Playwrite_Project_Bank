@@ -2,9 +2,9 @@ pipeline {
 	agent any
 
 	stages {
-		stage('Proof') {
+		stage('Only Test Stage') {
 			steps {
-				echo 'Stage is executing successfully'
+				echo 'If you see this, Jenkins stages are working'
 			}
 		}
 	}
