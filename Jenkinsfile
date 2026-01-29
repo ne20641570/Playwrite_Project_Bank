@@ -1,9 +1,19 @@
 pipeline {
 	agent any
 	stages {
-		stage('Hello') {
+		stage('Checkout') {
 			steps {
-				echo 'Pipeline is running'
+				echo 'Code checked out from GitHub'
+			}
+		}
+		stage('Build') {
+			steps {
+				sh './mvnw clean compile'  // or your build command
+			}
+		}
+		stage('Test') {
+			steps {
+				sh './mvnw test'          // run Playwright Java tests
 			}
 		}
 	}
