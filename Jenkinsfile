@@ -110,7 +110,7 @@ pipeline {
 			])
 
 			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
-			allowEmptyArchive: true
+			allowEmptyArchive: false
 
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
