@@ -70,13 +70,13 @@ pipeline {
 
 					sh mvnCmd
 				}
-				def reportFile = ""
+
 				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
 				script {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
 
-
+					def reportFile = ""
 					if (params.SUITE_FILE == 'testng-ui.xml') {
 						reportFile = "Automation Playwright Suite.html"
 					} else if (params.SUITE_FILE == 'testng-api.xml') {
@@ -109,8 +109,8 @@ pipeline {
 				allowMissing: false
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/${reportFile}.html",
-			allowEmptyArchive: true
+			//archiveArtifacts artifacts: "${env.REPORT_DIR}/**/${params.SUITE_FILE}.html",
+			//allowEmptyArchive: true
 
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
