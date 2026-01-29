@@ -56,9 +56,9 @@ pipeline {
 				sh 'touch ~/.bash_profile; source ~/.bash_profile; mvn -version'
 				script {
 					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+					if (params.GROUPS?.trim()) { mvnCmd += " -Dgroups=${params.GROUPS}" }
 					if (params.TEST_CLASS?.trim()) { mvnCmd += " -Dtest=${params.TEST_CLASS}" }
 					if (params.TEST_METHOD?.trim()) { mvnCmd += " -Dtest=${params.TEST_METHOD}" }
-					if (params.GROUPS?.trim()) { mvnCmd += " -Dgroups=${params.GROUPS}" }
 					if (params.BROWSER?.trim()) { mvnCmd += " -Dbrowser=${params.BROWSER}" }
 					if (params.THREAD_COUNT?.trim()) { mvnCmd += " -Dthread.count=${params.THREAD_COUNT}" }
 
