@@ -100,17 +100,17 @@ pipeline {
 
 	post {
 		always {
-			//publishHTML(target: [
-			//	reportName: "ExtentReport_${params.SUITE_FILE}",
-			//	reportDir: "${env.REPORT_DIR}",
-			//	reportFiles: "index.html",
-			//	keepAll: true,
-			//	alwaysLinkToLastBuild: true,
-			//	allowMissing: false
-			//])
-			//
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
-			allowEmptyArchive: true
+			publishHTML(target: [
+				reportName: "ExtentReport_${params.SUITE_FILE}",
+				reportDir: "${env.REPORT_DIR}",
+				reportFiles: "index.html",
+				keepAll: true,
+				alwaysLinkToLastBuild: true,
+				allowMissing: false
+			])
+
+			//archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
+			//allowEmptyArchive: true
 
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
