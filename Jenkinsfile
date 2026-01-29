@@ -15,7 +15,7 @@ pipeline {
 		string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
 
 		choice(name: 'BROWSER',
-			choices: ['chromium', 'webkit'],
+			choices: [' ' ,'chromium', 'webkit'],
 			description: 'Override browser')
 
 		string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
