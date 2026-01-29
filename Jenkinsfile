@@ -75,18 +75,6 @@ pipeline {
 			])
 			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
 			echo "Extent Report URL: ${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
-
-			script {
-				def reportUrl = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
-				emailext(
-					subject: "Jenkins Build: ${currentBuild.fullDisplayName}",
-					body: """<p>Build Status: ${currentBuild.currentResult}</p>
-                             <p>Test Suite: ${params.SUITE_FILE}</p>
-                             <p>Extent Report: <a href='${reportUrl}'>Click Here</a></p>""",
-					to: env.EMAIL_RECIPIENTS,
-					mimeType: 'text/html'
-				)
-			}
 		}
 	}
 }
