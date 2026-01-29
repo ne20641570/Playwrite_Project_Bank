@@ -104,13 +104,13 @@ pipeline {
 				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
 				reportFiles: "index.html",
-				keepAll: false,
-				alwaysLinkToLastBuild: false,
-				allowMissing: true
+				keepAll: true,
+				alwaysLinkToLastBuild: true,
+				allowMissing: false
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
-			allowEmptyArchive: false
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/${params.SUITE_FILE}.html",
+			allowEmptyArchive: true
 
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
