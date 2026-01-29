@@ -63,7 +63,19 @@ pipeline {
 	}
 
 	post {
+
 		always {
+			publishHTML(target: [
+				reportName: 'Extent Report',
+				reportDir: env.REPORT_DIR,
+				reportFiles: 'index.html',
+				keepAll: true,
+				alwaysLinkToLastBuild: true,
+				allowMissing: false
+			])
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
+			echo "Extent Report URL: ${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
+
 			script {
 				def reportUrl = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
 				emailext(
