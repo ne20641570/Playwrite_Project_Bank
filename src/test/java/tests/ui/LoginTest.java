@@ -132,12 +132,12 @@ public class LoginTest extends BaseTest {
     // ------------------- Test 2: Invalid Login -------------------
     @Test(priority = 2, alwaysRun=true, retryAnalyzer = RetryAnalyzer.class, description = "TC02 Login with invalid credentials")
     public void loginWithInvalidCredentialsTest(Method method) throws IOException, SQLException {
-        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
+//        filePath = ExcelUtils.readExeclPath() + ConfigReader.getProperty("excel.file.bank");
         innerTestNode = ReportTestLogger.createinnerNode(testnode,"Login without writing credentials");
-        ExcelUtils.openExcel(filePath);
+//        ExcelUtils.openExcel(filePath);
         String userName="";
         String password = "";
-        String excelPassword = ExcelUtils.getCellData(readDataSheetName,"Password");
+//        String excelPassword = ExcelUtils.getCellData(readDataSheetName,"Password");
         try {
             // -------without credentials--------
             loginErrorFlow(innerTestNode,"", "", "Login without credentials");
