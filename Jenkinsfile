@@ -1,6 +1,6 @@
 pipeline {
 	echo "Starting Pipeline Execution..."
-    agent { label 'mac' }  // Runs on Jenkins node labeled 'mac'
+    agent any  // Runs on Jenkins node labeled 'mac'
 
     tools {
         maven 'Maven-3.9'
