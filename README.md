@@ -134,6 +134,7 @@ Playwright_Project_Bank
 │       │            └── RegistrationTest.java
 │
 ├── pom.xml
+├── Jenkinsfile
 ├── testng-master.xml
 ├── testng-api.xml
 ├── testng-db.xml
