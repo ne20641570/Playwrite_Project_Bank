@@ -1,93 +1,99 @@
 pipeline {
-	echo "Starting Pipeline Execution..."
-    agent any  // Runs on Jenkins node labeled 'mac'
+	agent any
 
-    tools {
-        maven 'Maven-3.9'
-    }
+	tools {
+		maven 'Maven-3.9'
+	}
 
-    parameters {
-		echo "Defining Pipeline Parameters..."
-        choice(name: 'SUITE_FILE', choices: ['testng-ui.xml', 'testng-api.xml', 'testng-db.xml'], description: 'Select TestNG suite XML')
-        string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
-        string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
-        string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
-        choice(name: 'BROWSER', choices: ['chromium', 'webkit'], description: 'Override browser')
-        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
-    }
+	parameters {
+		choice(name: 'SUITE_FILE',
+			choices: ['testng-ui.xml', 'testng-api.xml', 'testng-db.xml'],
+			description: 'Select TestNG suite XML')
 
-    environment {
-		echo "Setting Environment Variables..."
-        REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
-    }
+		string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
+		string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
+		string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
+		choice(name: 'BROWSER', choices: ['chromium', 'webkit'], description: 'Override browser')
+		string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
+	}
 
-    stages {
-		echo "Defining Pipeline Stages..."
-        stage('Checkout') {
-            steps {
+	environment {
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
+	}
+
+	stages {
+
+		stage('Initialize') {
+			steps {
+				echo "Starting Pipeline Execution..."
+				echo "Suite File: ${params.SUITE_FILE}"
+				echo "Browser: ${params.BROWSER}"
+			}
+		}
+
+		stage('Checkout') {
+			steps {
 				echo "Checking out source code from GitHub..."
-                git branch: 'main',
-                    url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git',
-                    credentialsId: 'github-creds'
-            }
-        }
+				git branch: 'main',
+				url: 'https://github.com/ne20641570/Playwrite_Project_Bank.git',
+				credentialsId: 'github-creds'
+			}
+		}
 
-        stage('Run Tests') {
-            steps {
-                sh '''
+		stage('Run Tests') {
+			steps {
+				sh '''
                     echo "Preparing shell environment..."
-                    touch .bash_profile
-                    source ~/.bash_profile
-
-                    echo "Maven version:"
                     mvn -version
                 '''
 
-                script {
-                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+				script {
+					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
-                    if (params.TEST_CLASS?.trim()) {
-                        mvnCmd += " -Dtest=${params.TEST_CLASS}"
-                    }
+					if (params.TEST_CLASS?.trim()) {
+						mvnCmd += " -Dtest=${params.TEST_CLASS}"
+					}
 
-                    if (params.GROUPS?.trim()) {
-                        mvnCmd += " -Dgroups=${params.GROUPS}"
-                    }
+					if (params.GROUPS?.trim()) {
+						mvnCmd += " -Dgroups=${params.GROUPS}"
+					}
 
-                    if (params.BROWSER?.trim()) {
-                        mvnCmd += " -Dbrowser=${params.BROWSER}"
-                    }
+					if (params.BROWSER?.trim()) {
+						mvnCmd += " -Dbrowser=${params.BROWSER}"
+					}
 
-                    if (params.THREAD_COUNT?.trim()) {
-                        mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
-                    }
+					if (params.THREAD_COUNT?.trim()) {
+						mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
+					}
 
-                    echo "================================="
-                    echo "Running command:"
-                    echo mvnCmd
-                    echo "================================="
+					echo "================================="
+					echo "Running command:"
+					echo mvnCmd
+					echo "================================="
 
-                    sh mvnCmd
-                }
-            }
-        }
-    }
+					sh mvnCmd
+				}
+			}
+		}
+	}
 
-    post {
-        always {
-            publishHTML(target: [
-                reportName: 'Extent Report',
-                reportDir: env.REPORT_DIR,
-                reportFiles: 'index.html',
-                keepAll: true,
-                alwaysLinkToLastBuild: true,
-                allowMissing: false
-            ])
+	post {
+		always {
+			echo "Publishing Extent Report..."
 
-            archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
+			publishHTML(target: [
+				reportName: 'Extent Report',
+				reportDir: env.REPORT_DIR,
+				reportFiles: 'index.html',
+				keepAll: true,
+				alwaysLinkToLastBuild: true,
+				allowMissing: false
+			])
 
-            echo "Extent Report URL:"
-            echo "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
-        }
-    }
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html", allowEmptyArchive: true
+
+			echo "Extent Report URL:"
+			echo "${env.BUILD_URL}artifact/${env.REPORT_DIR}/index.html"
+		}
+	}
 }
