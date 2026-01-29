@@ -181,7 +181,7 @@ public class DBUtils {
                 // Delete old records
                 stmt.executeUpdate(
                         "DELETE FROM registration_details " +
-                                "WHERE created_at < NOW() - INTERVAL 5 MINUTE"
+                                "WHERE created_at < NOW() - INTERVAL 3 MINUTE"
                 );
 
                 // Enable safe updates
