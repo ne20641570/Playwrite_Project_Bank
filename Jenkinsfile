@@ -22,7 +22,7 @@ pipeline {
 	}
 
 	environment {
-		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}-${env.BUILD_NUMBER}"
 		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
