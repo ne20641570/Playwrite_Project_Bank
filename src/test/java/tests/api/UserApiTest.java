@@ -51,7 +51,7 @@ public class UserApiTest extends BaseApiTest {
         }
     }
 
-//    @Test(priority = 2, description = "Get User by Username")
+    @Test(priority = 2, description = "Get User by Username")
     public void getUserByUsernameTest() {
          try {
             innerTestNode = testnode.createNode("Creating Random User");
@@ -110,7 +110,7 @@ public class UserApiTest extends BaseApiTest {
         }
     }
 
-//    @Test(priority = 4, description = "Delete User")
+    @Test(priority = 4, description = "Delete User")
     public void deleteUserTest() {
          try {
             innerTestNode = testnode.createNode("Creating Random User");
