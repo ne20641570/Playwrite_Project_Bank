@@ -4,18 +4,11 @@ import api.data.factory.UserDataFactory;
 import api.models.user.User;
 import api.services.UserService;
 import com.aventstack.extentreports.ExtentTest;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import config.ConfigReader;
 import io.restassured.response.Response;
 import listeners.Scenario;
 import org.testng.Assert;
-import org.testng.ITestContext;
-import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 
