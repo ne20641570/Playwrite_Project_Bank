@@ -15,14 +15,14 @@ pipeline {
 		string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
 
 		choice(name: 'BROWSER',
-			choices: [' ' ,'chromium', 'webkit'],
+			choices: ['chromium', 'webkit'],
 			description: 'Override browser')
 
 		string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
 	}
 
 	environment {
-		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}-${env.BUILD_NUMBER}"
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
 		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
@@ -105,12 +105,12 @@ pipeline {
 				reportDir: "${env.REPORT_DIR}",
 				reportFiles: "index.html",
 				keepAll: true,
-				alwaysLinkToLastBuild: false,
+				alwaysLinkToLastBuild: true,
 				allowMissing: false
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/.html",
-			allowEmptyArchive: true
+			//archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
+			//allowEmptyArchive: true
 
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
