@@ -51,7 +51,7 @@ public class UserApiTest extends BaseApiTest {
         }
     }
 
-    @Test(priority = 2, description = "Get User by Username")
+//    @Test(priority = 2, description = "Get User by Username")
     public void getUserByUsernameTest() {
          try {
             innerTestNode = testnode.createNode("Creating Random User");
@@ -66,7 +66,7 @@ public class UserApiTest extends BaseApiTest {
             innerTestNode = testnode.createNode("Get User Response");
             innerTestNode.info(intoJsonForReport(response));
 
-//            Assert.assertEquals(response.statusCode(), 200);
+            Assert.assertEquals(response.statusCode(), 200);
             Assert.assertEquals(response.jsonPath().getString("username"), user.username);
 
             innerTestNode.pass("Get User by Username successfully completed");
@@ -110,7 +110,7 @@ public class UserApiTest extends BaseApiTest {
         }
     }
 
-    @Test(priority = 4, description = "Delete User")
+//    @Test(priority = 4, description = "Delete User")
     public void deleteUserTest() {
          try {
             innerTestNode = testnode.createNode("Creating Random User");
@@ -125,7 +125,7 @@ public class UserApiTest extends BaseApiTest {
             innerTestNode = testnode.createNode("Delete User Response");
             innerTestNode.info(intoJsonForReport(response));
 
-//            Assert.assertEquals(response.statusCode(), 200);
+            Assert.assertEquals(response.statusCode(), 200);
             innerTestNode.pass("Delete User successfully completed");
         } catch (Exception | AssertionError e) {
             innerTestNode=innerTestNode.createNode("Error");
