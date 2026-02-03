@@ -78,7 +78,7 @@ pipeline {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
 					def videoSourceDir = "reports/videos/${reportDate}/video"
-					def videoTargetDir = "${reportBaseDir}/videos"
+					def videoTargetDir = "${videoSourceDir}/videos"
 
 					def reportFile = ""
 					if (params.SUITE_FILE == 'testng-ui.xml') {
@@ -92,7 +92,7 @@ pipeline {
 					sh """
 						echo "Preparing Extent report for Jenkins..."
 						mkdir -p ${reportBaseDir}
-						cp "${reportBaseDir}/${reportFile}" ${reportBaseDir}/index.html || true
+						cp "${reportFile}" index.html || true
 
 						echo "Copying Playwright failure videos..."
 						if [ -d "${videoSourceDir}" ]; then
@@ -128,7 +128,7 @@ pipeline {
 			// -------- Build Summary Links --------
 			script {
 				def reportUrl = "index.html"
-				def videoUrl  = "${videoSourceDir}/*"
+				def videoUrl  = "${env.REPORT_DIR}/videos"
 
 				currentBuild.description = """
                 <b>Extent Report:</b>
