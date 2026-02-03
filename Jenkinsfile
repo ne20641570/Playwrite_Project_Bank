@@ -127,8 +127,21 @@ pipeline {
 			allowEmptyArchive: true
 			// -------- Build Summary Links --------
 			script {
-				def reportUrl = "ExtentReport_${params.SUITE_FILE}"
-				def videoUrl  = "${env.REPORT_DIR}/videos/**/*"
+				def reportDate = new Date().format('yyyy-MM-dd')
+				def reportBaseDir = "reports/extentReports/${reportDate}"
+				def videoSourceDir = "reports/videos/${reportDate}"
+				def videoTargetDir = "${videoSourceDir}"
+
+				def reportFile = ""
+				if (params.SUITE_FILE == 'testng-ui.xml') {
+					reportFile = "Automation Playwright Suite.html"
+				} else if (params.SUITE_FILE == 'testng-api.xml') {
+					reportFile = "API RestAssured Suite.html"
+				} else if (params.SUITE_FILE == 'testng-db.xml') {
+					reportFile = "DataBase Suite.html"
+				}
+				def reportUrl = "${reportFile}"
+				def videoUrl  = "videoTargetDir/*"
 
 				currentBuild.description = """
                 <b>Extent Report:</b>
