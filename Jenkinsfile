@@ -15,14 +15,14 @@ pipeline {
 		string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
 
 		choice(name: 'BROWSER',
-			choices: ['all', 'chromium', 'webkit'],
+			choices: ['chromium', 'webkit'],
 			description: 'Override browser')
 
 		string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
 	}
 
 	environment {
-		REPORT_DIR = ""
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
 		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
@@ -45,8 +45,6 @@ pipeline {
 		stage('Run Tests') {
 			steps {
 				script {
-
-					// ---------------- BUILD MAVEN COMMAND ----------------
 					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
 					if (params.GROUPS?.trim()) {
@@ -58,7 +56,7 @@ pipeline {
 					if (params.TEST_METHOD?.trim()) {
 						mvnCmd += " -Dtest=${params.TEST_METHOD}"
 					}
-					if (params.BROWSER && params.BROWSER != 'ALL') {
+					if (params.BROWSER?.trim()) {
 						mvnCmd += " -Dbrowser=${params.BROWSER}"
 					}
 					if (params.THREAD_COUNT?.trim()) {
@@ -70,12 +68,11 @@ pipeline {
 					echo mvnCmd
 					echo "================================="
 
-					// ⭐ KEY FIX: Allow pipeline to continue even if tests fail
-					catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-						sh mvnCmd
-					}
+					sh mvnCmd
+				}
 
-					// ---------------- EXTENT REPORT HANDLING ----------------
+				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
+				script {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
 
@@ -103,25 +100,20 @@ pipeline {
 
 	post {
 		always {
-
-			// ⭐ LEFT BANNER HTML REPORT
 			publishHTML(target: [
 				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
 				reportFiles: "index.html",
 				keepAll: true,
 				alwaysLinkToLastBuild: true,
-				allowMissing: false
+				allowMissing: true
 			])
 
-			// ⭐ ARCHIVE REPORT FILES
 			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
 			allowEmptyArchive: true
 
-			echo "================================="
 			echo "Extent Report URL:"
-			echo "${env.BUILD_URL}ExtentReport_${params.SUITE_FILE}/"
-			echo "================================="
+			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
 		}
 	}
 }
