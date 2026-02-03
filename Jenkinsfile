@@ -22,7 +22,8 @@ pipeline {
 	}
 
 	environment {
-		REPORT_DIR = "reports/extentReports/latest"
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
+		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
 	stages {
@@ -43,8 +44,6 @@ pipeline {
 
 		stage('Run Tests') {
 			steps {
-
-				// -------- RUN TESTS --------
 				script {
 					def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
@@ -64,15 +63,19 @@ pipeline {
 						mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
 					}
 
-					echo "Running: ${mvnCmd}"
+					echo "================================="
+					echo "Running command:"
+					echo mvnCmd
+					echo "================================="
 
-					catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
-						sh mvnCmd
-					}
+					sh mvnCmd
 				}
 
-				// -------- REPORT & VIDEO HANDLING --------
+				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
 				script {
+					def reportDate = new Date().format('yyyy-MM-dd')
+					def reportBaseDir = "reports/extentReports/${reportDate}"
+
 					def reportFile = ""
 					if (params.SUITE_FILE == 'testng-ui.xml') {
 						reportFile = "Automation Playwright Suite.html"
@@ -82,23 +85,14 @@ pipeline {
 						reportFile = "DataBase Suite.html"
 					}
 
-					def today = new Date().format('yyyy-MM-dd')
-					def videoSourceDir = "reports/videos/${today}/video"
-					def videoTargetDir = "${env.REPORT_DIR}/videos"
-
 					sh """
-                        echo "Preparing Extent Report..."
-                        mkdir -p ${env.REPORT_DIR}
-                        find reports -name "${reportFile}" -exec cp {} ${env.REPORT_DIR}/index.html \\; || true
-
-                        echo "Copying failure videos..."
-                        if [ -d "${videoSourceDir}" ]; then
-                            mkdir -p ${videoTargetDir}
-                            cp -R ${videoSourceDir}/* ${videoTargetDir}/ || true
-                        else
-                            echo "No videos found"
-                        fi
+                        echo "Preparing Extent report for Jenkins..."
+                        cd ${reportBaseDir}
+                        ls -l
+                        cp "${reportFile}" index.html
                     """
+
+					env.REPORT_DIR = reportBaseDir
 				}
 			}
 		}
@@ -106,35 +100,20 @@ pipeline {
 
 	post {
 		always {
-
-			// -------- PUBLISH HTML REPORT --------
 			publishHTML(target: [
-				reportName: "ExtentReport",   // ⚠️ no spaces = clean URL
+				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
 				reportFiles: "index.html",
 				keepAll: true,
 				alwaysLinkToLastBuild: true,
-				allowMissing: false
+				allowMissing: true
 			])
 
-			// -------- ARCHIVE REPORT & VIDEOS --------
-			archiveArtifacts artifacts: """
-                ${env.REPORT_DIR}/index.html,
-                ${env.REPORT_DIR}/videos/**/*
-            """, allowEmptyArchive: true
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
+			allowEmptyArchive: true
 
-			// -------- BUILD SUMMARY LINKS (FIXED) --------
-			script {
-				def reportUrl = "${env.BUILD_URL}ExtentReport/"
-				def videoUrl  = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/videos/"
-
-				currentBuild.description = """
-                <b>Extent Report:</b>
-                <a href='${reportUrl}' target='_blank'>Open Report</a><br/>
-                <b>Failure Videos:</b>
-                <a href='${videoUrl}' target='_blank'>Open Videos</a>
-                """
-			}
+			echo "Extent Report URL:"
+			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
 		}
 	}
 }
