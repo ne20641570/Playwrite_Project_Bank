@@ -23,7 +23,6 @@ pipeline {
 
 	environment {
 		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
-		VIDEO_DIR = "reports/videos/${new Date().format('yyyy-MM-dd')}"
 		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
@@ -72,7 +71,7 @@ pipeline {
 					sh mvnCmd
 				}
 
-				// ✅ EXTENT REPORT HANDLING
+				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
 				script {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
@@ -113,12 +112,8 @@ pipeline {
 			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
 			allowEmptyArchive: true
 
-			// ✅ Add links to report and Playwright videos
 			echo "Extent Report URL:"
 			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
-
-			echo "Playwright Test Videos (on failure) URL:"
-			echo "${env.BUILD_URL}artifact/reports/videos/${new Date().format('yyyy-MM-dd')}/"
 		}
 	}
 }
