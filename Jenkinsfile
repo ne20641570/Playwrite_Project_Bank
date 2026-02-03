@@ -89,6 +89,7 @@ pipeline {
 
 					sh """
                         echo "Preparing Extent report for Jenkins..."
+                        mkdir -p ${reportBaseDir}
                         cd ${reportBaseDir}
                         ls -l
                         cp "${reportFile}" index.html
