@@ -24,6 +24,7 @@ pipeline {
 	environment {
 		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}/"
 		EMAIL_RECIPIENTS = "your_email@example.com"
+		def reportFile = ""
 	}
 
 	stages {
@@ -76,7 +77,7 @@ pipeline {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
 
-					def reportFile = ""
+
 					if (params.SUITE_FILE == 'testng-ui.xml') {
 						reportFile = "Automation Playwright Suite.html"
 					} else if (params.SUITE_FILE == 'testng-api.xml') {
