@@ -106,7 +106,7 @@ pipeline {
 				reportFiles: "index.html",
 				keepAll: true,
 				alwaysLinkToLastBuild: true,
-				allowMissing: true
+				allowMissing: false
 			])
 
 			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
