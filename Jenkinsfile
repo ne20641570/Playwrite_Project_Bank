@@ -22,9 +22,8 @@ pipeline {
 	}
 
 	environment {
-		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}/"
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
 		EMAIL_RECIPIENTS = "your_email@example.com"
-		def reportFile = ""
 	}
 
 	stages {
@@ -69,7 +68,9 @@ pipeline {
 					echo mvnCmd
 					echo "================================="
 
-					sh mvnCmd
+					catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+						sh mvnCmd
+					}
 				}
 
 				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
@@ -77,7 +78,7 @@ pipeline {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
 
-
+					def reportFile = ""
 					if (params.SUITE_FILE == 'testng-ui.xml') {
 						reportFile = "Automation Playwright Suite.html"
 					} else if (params.SUITE_FILE == 'testng-api.xml') {
@@ -104,13 +105,13 @@ pipeline {
 			publishHTML(target: [
 				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
-				reportFiles: "${reportFile}",
+				reportFiles: "index.html",
 				keepAll: true,
 				alwaysLinkToLastBuild: true,
 				allowMissing: true
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/${reportFile}.html",
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
 			allowEmptyArchive: true
 
 			echo "Extent Report URL:"
