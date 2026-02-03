@@ -22,7 +22,7 @@ pipeline {
 	}
 
 	environment {
-		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}"
+		REPORT_DIR = "reports/extentReports/${new Date().format('yyyy-MM-dd')}/"
 		EMAIL_RECIPIENTS = "your_email@example.com"
 	}
 
@@ -103,13 +103,13 @@ pipeline {
 			publishHTML(target: [
 				reportName: "ExtentReport_${params.SUITE_FILE}",
 				reportDir: "${env.REPORT_DIR}",
-				reportFiles: "index.html",
+				reportFiles: "${reportFile}",
 				keepAll: true,
 				alwaysLinkToLastBuild: true,
 				allowMissing: true
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
+			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/${reportFile}.html",
 			allowEmptyArchive: true
 
 			echo "Extent Report URL:"
