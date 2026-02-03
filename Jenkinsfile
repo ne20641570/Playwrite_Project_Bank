@@ -130,7 +130,7 @@ pipeline {
 				def reportDate = new Date().format('yyyy-MM-dd')
 				def reportBaseDir = "reports/extentReports/${reportDate}"
 				def videoSourceDir = "reports/videos/${reportDate}"
-				def videoTargetDir = "${videoSourceDir}"
+				//def videoTargetDir = "${videoSourceDir}"
 
 				def reportFile = ""
 				if (params.SUITE_FILE == 'testng-ui.xml') {
@@ -141,7 +141,7 @@ pipeline {
 					reportFile = "DataBase Suite.html"
 				}
 				def reportUrl = "${reportBaseDir}/${reportFile}"
-				def videoUrl  = "${videoTargetDir}/${videoTargetDir}/*"
+				def videoUrl  = "${videoSourceDir}/*"
 
 				currentBuild.description = """
                 <b>Extent Report:</b>
