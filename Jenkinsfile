@@ -140,8 +140,8 @@ pipeline {
 				} else if (params.SUITE_FILE == 'testng-db.xml') {
 					reportFile = "DataBase Suite.html"
 				}
-				def reportUrl = "${reportFile}"
-				def videoUrl  = "videoTargetDir/*"
+				def reportUrl = "${reportBaseDir}/${reportFile}"
+				def videoUrl  = "${videoTargetDir}/${videoTargetDir}/*"
 
 				currentBuild.description = """
                 <b>Extent Report:</b>
