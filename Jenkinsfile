@@ -77,6 +77,8 @@ pipeline {
 				script {
 					def reportDate = new Date().format('yyyy-MM-dd')
 					def reportBaseDir = "reports/extentReports/${reportDate}"
+					def videoSourceDir = "reports/videos/${reportDate}/video"
+					def videoTargetDir = "${reportBaseDir}/videos"
 
 					def reportFile = ""
 					if (params.SUITE_FILE == 'testng-ui.xml') {
@@ -88,12 +90,18 @@ pipeline {
 					}
 
 					sh """
-                        echo "Preparing Extent report for Jenkins..."
-                        mkdir -p ${reportBaseDir}
-                        cd ${reportBaseDir}
-                        ls -l
-                        cp "${reportFile}" index.html
-                    """
+						echo "Preparing Extent report for Jenkins..."
+						mkdir -p ${reportBaseDir}
+						cp "${reportBaseDir}/${reportFile}" ${reportBaseDir}/index.html || true
+
+						echo "Copying Playwright failure videos..."
+						if [ -d "${videoSourceDir}" ]; then
+							mkdir -p ${videoTargetDir}
+							cp -R ${videoSourceDir}/* ${videoTargetDir}/ || true
+						else
+							echo "No videos found (tests may have passed)"
+						fi
+					"""
 
 					env.REPORT_DIR = reportBaseDir
 				}
@@ -112,11 +120,25 @@ pipeline {
 				allowMissing: true
 			])
 
-			archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*.html",
+			archiveArtifacts artifacts: """
+				${env.REPORT_DIR}/**/*.html,
+				${env.REPORT_DIR}/videos/**/*
+				""",
 			allowEmptyArchive: true
+			// -------- Build Summary Links --------
+			script {
+				def reportUrl = "${env.BUILD_URL}Extent_Report/"
+				def videoUrl  = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/videos/"
 
-			echo "Extent Report URL:"
-			echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
+				currentBuild.description = """
+                <b>Extent Report:</b>
+                <a href='${reportUrl}' target='_blank'>Open Report</a><br/>
+                <b>Failure Videos:</b>
+                <a href='${videoUrl}' target='_blank'>Open Videos</a>
+                """
+			}
+			//echo "Extent Report URL:"
+			//echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
 		}
 	}
 }
