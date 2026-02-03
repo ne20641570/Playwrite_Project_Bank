@@ -68,7 +68,9 @@ pipeline {
 					echo mvnCmd
 					echo "================================="
 
-					sh mvnCmd
+					catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+						sh mvnCmd
+					}
 				}
 
 				// ✅ EXTENT REPORT HANDLING (VERY IMPORTANT)
