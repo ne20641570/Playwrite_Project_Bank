@@ -127,8 +127,8 @@ pipeline {
 			allowEmptyArchive: true
 			// -------- Build Summary Links --------
 			script {
-				def reportUrl = "${env.BUILD_URL}Extent_Report/"
-				def videoUrl  = "${env.BUILD_URL}artifact/${env.REPORT_DIR}/videos/"
+				def reportUrl = "index.html"
+				def videoUrl  = "${videoSourceDir}/*"
 
 				currentBuild.description = """
                 <b>Extent Report:</b>
