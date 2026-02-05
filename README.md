@@ -2,6 +2,16 @@
 
 This is a complete **UI Automation Framework** using:
 
+## about the framework
+- **Playwright Java** for UI automation
+- Cross browser support (Chromium, WebKit)
+- isolation via browsercontext - no share between tests
+- support headless and headed mode
+- supports parallel exeuction
+- can easily integrate with Java Test Runners, TestNg, others
+- rich api for web automation- direct control like click, sendkeys and other actions on web elements
+- Auto waiting mechanism- it will wait for element to be ready before performing actions
+
 ## 🚀 Tech Stack
 - **Java 17+**
 - **Playwright Java** (UI Automation)
