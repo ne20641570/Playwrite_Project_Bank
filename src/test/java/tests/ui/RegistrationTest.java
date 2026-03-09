@@ -32,6 +32,8 @@ public class RegistrationTest extends BaseTest {
     ExtentTest innerTestNodes;
     String attachmentIs;
 
+
+
     // ------------------- Class-level setup for report -------------------
     @BeforeClass
     public void setupBeforeClass(ITestContext context) {
