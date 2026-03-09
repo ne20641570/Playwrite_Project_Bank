@@ -83,7 +83,23 @@ pipeline {
                     echo mvnCmd
                     echo "================================="
 
-                    sh mvnCmd
+                    catchError(buildResult: 'FAILURE', stageResult: 'FAILURE') {
+                        sh mvnCmd
+                    }
+                }
+
+                script {
+
+                    def baseDir = "reports/extentReports/${env.REPORT_DATE}"
+
+                    echo "Checking generated reports..."
+
+                    sh """
+                        echo "===== EXTENT REPORT FILES ====="
+                        find reports -name index.html || true
+                    """
+
+                    env.REPORT_BASE = baseDir
                 }
             }
         }
@@ -95,40 +111,35 @@ pipeline {
 
             script {
 
-                def reportDate = new Date().format('yyyy-MM-dd')
-                def baseDir = "reports/extentReports/${reportDate}"
+                def baseDir = "${env.REPORT_BASE}"
 
-                echo "Publishing Extent Reports from ${baseDir}"
+                def suites = [
+                    "Automation Playwright Suite",
+                    "API RestAssured Suite",
+                    "DataBase Suite"
+                ]
 
-                publishHTML(target: [
-                    reportName: "Automation Playwright Suite",
-                    reportDir: "${baseDir}/Automation Playwright Suite",
-                    reportFiles: "index.html",
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: true,
-                    includes: '**/*'
-                ])
+                for (suite in suites) {
 
-                publishHTML(target: [
-                    reportName: "API RestAssured Suite",
-                    reportDir: "${baseDir}/API RestAssured Suite",
-                    reportFiles: "index.html",
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: true,
-                    includes: '**/*'
-                ])
+                    def reportPath = "${baseDir}/${suite}"
 
-                publishHTML(target: [
-                    reportName: "DataBase Suite",
-                    reportDir: "${baseDir}/DataBase Suite",
-                    reportFiles: "index.html",
-                    keepAll: true,
-                    alwaysLinkToLastBuild: true,
-                    allowMissing: true,
-                    includes: '**/*'
-                ])
+                    sh """
+                        mkdir -p "${reportPath}"
+
+//                         if [ ! -f "${reportPath}/index.html" ]; then
+//                             echo "<html><body><h2>No Report Generated</h2></body></html>" > "${reportPath}/index.html"
+//                         fi
+                    """
+
+                    publishHTML(target: [
+                        reportName: "${suite}",
+                        reportDir: "${reportPath}",
+                        reportFiles: "index.html",
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: true
+                    ])
+                }
 
                 archiveArtifacts artifacts: "${baseDir}/**/*",
                 allowEmptyArchive: true
