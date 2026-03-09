@@ -6,24 +6,28 @@ pipeline {
     }
 
     parameters {
-        choice(name: 'SUITE_FILE',
+
+        choice(
+            name: 'SUITE_FILE',
             choices: ['all', 'testng-ui.xml', 'testng-api.xml', 'testng-db.xml'],
-            description: 'Select TestNG suite XML')
+            description: 'Select TestNG Suite'
+        )
 
         string(name: 'GROUPS', defaultValue: '', description: 'Run specific TestNG groups')
         string(name: 'TEST_CLASS', defaultValue: '', description: 'Run a single test class')
         string(name: 'TEST_METHOD', defaultValue: '', description: 'Run a single test method')
 
-        choice(name: 'BROWSER',
-            choices: ['all','chromium', 'webkit'],
-            description: 'Override browser')
+        choice(
+            name: 'BROWSER',
+            choices: ['all','chromium','webkit'],
+            description: 'Select Browser'
+        )
 
-        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Number of threads')
+        string(name: 'THREAD_COUNT', defaultValue: '', description: 'Parallel thread count')
     }
 
     environment {
         REPORT_DATE = "${new Date().format('yyyy-MM-dd')}"
-        EMAIL_RECIPIENTS = "your_email@example.com"
     }
 
     stages {
@@ -43,29 +47,39 @@ pipeline {
         }
 
         stage('Run Tests') {
+
             steps {
+
                 script {
 
-                    def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+                    def mvnCmd = "mvn clean test"
+
+                    if (params.SUITE_FILE != 'all') {
+                        mvnCmd += " -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
+                    }
 
                     if (params.GROUPS?.trim()) {
                         mvnCmd += " -Dgroups=${params.GROUPS}"
                     }
+
                     if (params.TEST_CLASS?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_CLASS}"
                     }
+
                     if (params.TEST_METHOD?.trim()) {
                         mvnCmd += " -Dtest=${params.TEST_METHOD}"
                     }
+
                     if (params.BROWSER?.trim()) {
                         mvnCmd += " -Dbrowser=${params.BROWSER}"
                     }
+
                     if (params.THREAD_COUNT?.trim()) {
                         mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
                     }
 
                     echo "================================="
-                    echo "Running command:"
+                    echo "Running Command:"
                     echo mvnCmd
                     echo "================================="
 
@@ -76,34 +90,16 @@ pipeline {
 
                 script {
 
-                    def reportBaseDir = "reports/extentReports/${env.REPORT_DATE}"
-                    def suiteFolder = ""
+                    def baseDir = "reports/extentReports/${env.REPORT_DATE}"
 
-                    if (params.SUITE_FILE == 'testng-ui.xml') {
-                        suiteFolder = "Automation Playwright Suite"
-                    } else if (params.SUITE_FILE == 'testng-api.xml') {
-                        suiteFolder = "API RestAssured Suite"
-                    } else if (params.SUITE_FILE == 'testng-db.xml') {
-                        suiteFolder = "DataBase Suite"
-                    } else {
-                        suiteFolder = "Complete Suite"
-                    }
-
-                    def fullReportDir = "${reportBaseDir}/${suiteFolder}"
-
-                    echo "Preparing Extent Report folder: ${fullReportDir}"
+                    echo "Checking generated reports..."
 
                     sh """
-                        mkdir -p "${fullReportDir}"
-
-                        if [ ! -f "${fullReportDir}/index.html" ]; then
-                            echo "<html><body><h2>No Extent Report Generated</h2></body></html>" > "${fullReportDir}/index.html"
-                        fi
-
-                        ls -la "${fullReportDir}"
+                        echo "===== EXTENT REPORT FILES ====="
+                        find reports -name index.html || true
                     """
 
-                    env.REPORT_DIR = fullReportDir
+                    env.REPORT_BASE = baseDir
                 }
             }
         }
@@ -113,20 +109,43 @@ pipeline {
 
         always {
 
-            publishHTML(target: [
-                reportName: "Extent_Report_${params.SUITE_FILE}",
-                reportDir: "${env.REPORT_DIR}",
-                reportFiles: "index.html",
-                keepAll: true,
-                alwaysLinkToLastBuild: true,
-                allowMissing: true
-            ])
+            script {
 
-            archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*",
-            allowEmptyArchive: true
+                def baseDir = "${env.REPORT_BASE}"
 
-            echo "Extent Report URL:"
-            echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
+                def suites = [
+                    "Automation Playwright Suite",
+                    "API RestAssured Suite",
+                    "DataBase Suite"
+                ]
+
+                for (suite in suites) {
+
+                    def reportPath = "${baseDir}/${suite}"
+
+                    sh """
+                        mkdir -p "${reportPath}"
+
+                        if [ ! -f "${reportPath}/index.html" ]; then
+                            echo "<html><body><h2>No Report Generated</h2></body></html>" > "${reportPath}/index.html"
+                        fi
+                    """
+
+                    publishHTML(target: [
+                        reportName: "${suite}",
+                        reportDir: "${reportPath}",
+                        reportFiles: "index.html",
+                        keepAll: true,
+                        alwaysLinkToLastBuild: true,
+                        allowMissing: true
+                    ])
+                }
+
+                archiveArtifacts artifacts: "${baseDir}/**/*",
+                allowEmptyArchive: true
+
+                echo "Extent Reports Published Successfully"
+            }
         }
     }
 }
