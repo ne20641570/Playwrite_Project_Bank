@@ -106,7 +106,8 @@ pipeline {
                     reportFiles: "index.html",
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
-                    allowMissing: true
+                    allowMissing: true,
+                    includes: '**/*'
                 ])
 
                 publishHTML(target: [
@@ -115,7 +116,8 @@ pipeline {
                     reportFiles: "index.html",
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
-                    allowMissing: true
+                    allowMissing: true,
+                    includes: '**/*'
                 ])
 
                 publishHTML(target: [
@@ -124,7 +126,8 @@ pipeline {
                     reportFiles: "index.html",
                     keepAll: true,
                     alwaysLinkToLastBuild: true,
-                    allowMissing: true
+                    allowMissing: true,
+                    includes: '**/*'
                 ])
 
                 archiveArtifacts artifacts: "${baseDir}/**/*",
