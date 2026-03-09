@@ -125,9 +125,6 @@ pipeline {
 
                     sh """
                         mkdir -p "${reportPath}"
-
-                        if [ ! -f "${reportPath}/index.html" ]; then
-                            echo "<html><body><h2>No Report Generated</h2></body></html>" > "${reportPath}/index.html"
                         fi
                     """
 
