@@ -44,27 +44,17 @@ pipeline {
         stage('Run Tests') {
             steps {
                 script {
-                    // Build Maven command dynamically
+                    // 1️⃣ Build Maven command dynamically
                     def mvnCmd = "mvn clean test -Dsurefire.suiteXmlFiles=${params.SUITE_FILE}"
 
-                    if (params.GROUPS?.trim()) {
-                        mvnCmd += " -Dgroups=${params.GROUPS}"
-                    }
-                    if (params.TEST_CLASS?.trim()) {
-                        mvnCmd += " -Dtest=${params.TEST_CLASS}"
-                    }
-                    if (params.TEST_METHOD?.trim()) {
-                        mvnCmd += " -Dtest=${params.TEST_METHOD}"
-                    }
-                    if (params.BROWSER?.trim()) {
-                        mvnCmd += " -Dbrowser=${params.BROWSER}"
-                    }
-                    if (params.THREAD_COUNT?.trim()) {
-                        mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
-                    }
+                    if (params.GROUPS?.trim()) mvnCmd += " -Dgroups=${params.GROUPS}"
+                    if (params.TEST_CLASS?.trim()) mvnCmd += " -Dtest=${params.TEST_CLASS}"
+                    if (params.TEST_METHOD?.trim()) mvnCmd += " -Dtest=${params.TEST_METHOD}"
+                    if (params.BROWSER?.trim()) mvnCmd += " -Dbrowser=${params.BROWSER}"
+                    if (params.THREAD_COUNT?.trim()) mvnCmd += " -Dthread.count=${params.THREAD_COUNT}"
 
                     echo "================================="
-                    echo "Running command:"
+                    echo "Running Maven command:"
                     echo mvnCmd
                     echo "================================="
 
@@ -72,37 +62,18 @@ pipeline {
                         sh mvnCmd
                     }
 
-                    // Determine report folder based on suite
-                    def reportDate = new Date().format('yyyy-MM-dd')
-                    def reportBaseDir = "reports/extentReports/${reportDate}"
-                    def suiteFolder = ""
+                    // 2️⃣ Automatically detect the Extent report folder
+                    def reportDirCandidate = sh(
+                        script: "find target/ -type d -name '*ExtentReports*' | head -n 1",
+                        returnStdout: true
+                    ).trim()
 
-                    switch(params.SUITE_FILE) {
-                        case 'testng-ui.xml':
-                            suiteFolder = "Automation-Playwright-Suite"
-                            break
-                        case 'testng-api.xml':
-                            suiteFolder = "API-RestAssured-Suite"
-                            break
-                        case 'testng-db.xml':
-                            suiteFolder = "DataBase-Suite"
-                            break
-                        default:
-                            suiteFolder = "All-Suites"
+                    if (!reportDirCandidate) {
+                        error("❌ Extent report folder not found! Check your Maven/Playwright project configuration.")
                     }
 
-                    def fullReportDir = "${reportBaseDir}/${suiteFolder}"
-                    env.REPORT_DIR = fullReportDir
-
-                    // Ensure the folder exists
-                    sh """
-                        if [ -d "${fullReportDir}" ]; then
-                            echo "Report folder exists: ${fullReportDir}"
-                            ls -l ${fullReportDir}
-                        else
-                            echo "Report folder NOT found: ${fullReportDir}"
-                        fi
-                    """
+                    env.REPORT_DIR = reportDirCandidate
+                    echo "✅ Detected Extent report directory: ${env.REPORT_DIR}"
                 }
             }
         }
@@ -110,20 +81,24 @@ pipeline {
 
     post {
         always {
-            publishHTML(target: [
-                reportName: "ExtentReport_${params.SUITE_FILE}",
-                reportDir: "${env.REPORT_DIR}",
-                reportFiles: "index.html",
-                keepAll: true,
-                alwaysLinkToLastBuild: true,
-                allowMissing: false
-            ])
+            script {
+                // 3️⃣ Publish HTML report
+                publishHTML(target: [
+                    reportName: "ExtentReport_${params.SUITE_FILE}",
+                    reportDir: "${env.REPORT_DIR}",
+                    reportFiles: "index.html",
+                    keepAll: true,
+                    alwaysLinkToLastBuild: true,
+                    allowMissing: false
+                ])
 
-            archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*",
-                             allowEmptyArchive: true
+                // 4️⃣ Archive all report artifacts
+                archiveArtifacts artifacts: "${env.REPORT_DIR}/**/*",
+                                 allowEmptyArchive: true
 
-            echo "Extent Report URL:"
-            echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
+                echo "Extent Report URL:"
+                echo "${env.BUILD_URL}Extent_Report_${params.SUITE_FILE}/"
+            }
         }
     }
 }
